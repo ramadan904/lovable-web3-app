@@ -20,7 +20,18 @@ function cardNumber(address: string) {
  * A holographic "wallet card": tilts toward the pointer with a moving sheen,
  * and flips on click/Enter to show the receive QR code.
  */
-export function HoloCard({ address }: { address: Address }) {
+export function HoloCard({
+  address,
+  className = 'md:col-span-2',
+  hint = 'Tap the card to flip it',
+  holder,
+}: {
+  address: Address
+  className?: string
+  hint?: string
+  /** Shown until (or if) the ENS lookup doesn't return a name. */
+  holder?: string
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [flipped, setFlipped] = useState(false)
   const ens = useEnsName({ address, chainId: mainnet.id })
@@ -56,7 +67,7 @@ export function HoloCard({ address }: { address: Address }) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2 md:col-span-2">
+    <div className={`flex flex-col items-center gap-2 ${className}`}>
       <div className="w-full max-w-md [perspective:1200px]">
         <div
           ref={ref}
@@ -94,7 +105,7 @@ export function HoloCard({ address }: { address: Address }) {
                 <div className="mt-2 flex items-end justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[10px] tracking-widest opacity-80">HOLDER</p>
-                    <p className="truncate font-semibold">{ens.data ?? 'Anon'}</p>
+                    <p className="truncate font-semibold">{ens.data ?? holder ?? 'Anon'}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] tracking-widest opacity-80">VALUE</p>
@@ -118,7 +129,7 @@ export function HoloCard({ address }: { address: Address }) {
         </div>
       </div>
       <p className="text-muted-foreground flex items-center gap-1 text-xs">
-        <RotateCcw className="size-3" /> Tap the card to flip it
+        <RotateCcw className="size-3" /> {hint}
       </p>
     </div>
   )

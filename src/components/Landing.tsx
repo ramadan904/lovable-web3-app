@@ -15,7 +15,10 @@ import {
 } from 'lucide-react'
 
 import { ConnectCard } from '@/components/ConnectCard'
+import { HoloCard } from '@/components/dashboard/HoloCard'
 import { navigate, type Route } from '@/lib/route'
+
+const VITALIK = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
 type Feature = {
   icon: LucideIcon
@@ -107,33 +110,47 @@ const FEATURES: Feature[] = [
 export function Landing() {
   return (
     <div className="flex flex-col gap-14 py-6">
-      <section className="flex flex-col items-center gap-8 text-center">
-        <div>
-          <p className="bg-muted text-muted-foreground mx-auto mb-4 w-fit rounded-full px-3 py-1 text-xs font-medium">
-            Ethereum · Base · Sepolia
-          </p>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            Your wallet,{' '}
-            <span className="text-brand">
-              with a bodyguard
-            </span>
-          </h1>
-          <p className="text-muted-foreground mx-auto mt-3 max-w-xl">
-            A dozen tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale
-            alerts, and a Wrapped story for any address.
-          </p>
+      <section className="relative isolate">
+        {/* drifting brand-colour glow behind the hero (decorative) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-visible">
+          <div className="hero-blob bg-brand-from top-[-10%] left-[-5%] size-72" />
+          <div className="hero-blob hero-blob-2 bg-brand-via top-[30%] right-[-5%] size-80" />
+          <div className="hero-blob hero-blob-3 bg-brand-to bottom-[-15%] left-[35%] size-64" />
         </div>
-        <div id="connect" className="w-full scroll-mt-24">
-          <div className="flex justify-center">
-            <ConnectCard />
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+          <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
+            <p className="bg-background/70 text-muted-foreground w-fit rounded-full border px-3 py-1 text-xs font-medium backdrop-blur">
+              Ethereum · Base · Sepolia
+            </p>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">
+              Your wallet, <span className="text-brand">with a bodyguard</span>
+            </h1>
+            <p className="text-muted-foreground max-w-xl text-lg">
+              A dozen tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale
+              alerts, a savings lock, and a Wrapped story for any address.
+            </p>
+            <div id="connect" className="w-full max-w-md scroll-mt-24">
+              <ConnectCard />
+            </div>
+            <button
+              className="text-muted-foreground text-sm underline underline-offset-4"
+              onClick={() => navigate({ view: 'view', target: 'vitalik.eth' })}
+            >
+              No wallet? Look inside vitalik.eth’s wallet →
+            </button>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+              Live · vitalik.eth’s card
+            </p>
+            <HoloCard
+              address={VITALIK}
+              holder="vitalik.eth"
+              className="w-full"
+              hint="Move your mouse over it · tap to flip"
+            />
           </div>
         </div>
-        <button
-          className="text-muted-foreground text-sm underline underline-offset-4"
-          onClick={() => navigate({ view: 'view', target: 'vitalik.eth' })}
-        >
-          No wallet? Look inside vitalik.eth’s wallet →
-        </button>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

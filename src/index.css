@@ -260,3 +260,39 @@
     animation: none;
   }
 }
+
+/* ---------- Landing hero glow ---------- */
+.hero-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.28;
+  animation: blob-drift 18s ease-in-out infinite alternate;
+}
+.dark .hero-blob {
+  opacity: 0.22;
+}
+.hero-blob-2 {
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+.hero-blob-3 {
+  animation-duration: 26s;
+  animation-delay: -12s;
+}
+@keyframes blob-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, -30px) scale(1.12);
+  }
+  100% {
+    transform: translate(-30px, 25px) scale(0.95);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob {
+    animation: none;
+  }
+}

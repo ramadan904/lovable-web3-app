@@ -92,7 +92,7 @@ function App() {
   usePrices()
 
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex min-h-svh flex-col overflow-x-clip">
       <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
         <div aria-hidden className="from-brand-from via-brand-via to-brand-to h-0.5 bg-gradient-to-r" />
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
