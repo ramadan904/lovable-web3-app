@@ -14,6 +14,7 @@ import { SendCard } from '@/components/dashboard/SendCard'
 import { ApprovalsView } from '@/components/approvals/ApprovalsView'
 import { GasView } from '@/components/gas/GasView'
 import { PayView } from '@/components/pay/PayView'
+import { WatchView } from '@/components/watch/WatchView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
 import { navigate, useRoute, type Route } from '@/lib/route'
 import { cn } from '@/lib/utils'
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils'
 const TABS: { view: Route['view']; label: string }[] = [
   { view: 'dashboard', label: 'Wallet' },
   { view: 'wrapped', label: 'Wrapped' },
+  { view: 'watch', label: 'Watch' },
   { view: 'approvals', label: 'Guard' },
   { view: 'gas', label: 'Gas' },
 ]
@@ -114,6 +116,8 @@ function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         {route.view === 'gas' ? (
           <GasView />
+        ) : route.view === 'watch' ? (
+          <WatchView />
         ) : route.view === 'approvals' ? (
           <ApprovalsView />
         ) : route.view === 'pay' ? (

@@ -24,11 +24,13 @@ function describe(cmd: Command, chainName: (key?: string) => string | undefined)
     case 'goto':
       return cmd.view === 'gas'
         ? 'Open the live gas tracker'
-        : cmd.view === 'approvals'
-          ? 'Open Approval Guard'
-          : cmd.view === 'wrapped'
-            ? `Open Wallet Wrapped${cmd.target ? ` for ${cmd.target}` : ''}`
-            : 'Open the dashboard'
+        : cmd.view === 'watch'
+          ? 'Open Whale Watch'
+          : cmd.view === 'approvals'
+            ? 'Open Approval Guard'
+            : cmd.view === 'wrapped'
+              ? `Open Wallet Wrapped${cmd.target ? ` for ${cmd.target}` : ''}`
+              : 'Open the dashboard'
   }
 }
 
