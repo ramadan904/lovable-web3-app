@@ -1,5 +1,5 @@
 import { useConnection } from 'wagmi'
-import { Hexagon } from 'lucide-react'
+import { Download } from 'lucide-react'
 
 import { CommandBar } from '@/components/CommandBar'
 import { ConnectButton } from '@/components/ConnectButton'
@@ -18,6 +18,7 @@ import { PayView } from '@/components/pay/PayView'
 import { ProofView } from '@/components/proof/ProofView'
 import { WatchView } from '@/components/watch/WatchView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
+import { promptInstall, useCanInstall } from '@/lib/install'
 import { navigate, useRoute, type Route } from '@/lib/route'
 import { cn } from '@/lib/utils'
 
@@ -51,6 +52,7 @@ function Dashboard() {
 
 function App() {
   const route = useRoute()
+  const canInstall = useCanInstall()
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -58,7 +60,7 @@ function App() {
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
           <div className="flex items-center gap-6">
             <button className="flex items-center gap-2 font-semibold" onClick={() => navigate({ view: 'dashboard' })}>
-              <Hexagon className="size-5" />
+              <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-6" />
               <span className="hidden sm:inline">Lovable Web3</span>
             </button>
             <nav className="hidden items-center gap-1 md:flex">
@@ -117,7 +119,15 @@ function App() {
         )}
       </main>
 
-      <footer className="text-muted-foreground border-t py-6 text-center text-xs">
+      <footer className="text-muted-foreground flex flex-col items-center gap-3 border-t py-6 text-center text-xs">
+        {canInstall && (
+          <button
+            onClick={promptInstall}
+            className="bg-muted text-foreground flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+          >
+            <Download className="size-4" /> Install the app
+          </button>
+        )}
         Press Ctrl K for commands · Built with React, Tailwind, shadcn/ui and wagmi.
       </footer>
     </div>

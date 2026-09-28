@@ -10,6 +10,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - receive funds by QR code or copied address
 - get warned (and switch in one click) when the wallet is on an unsupported network
 - switch between light and dark mode
+- **install it like an app** on phone or desktop (web app manifest, maskable icons, install button where the browser supports it)
 - **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing
 - **Proof of ownership**: sign a free message (with an optional purpose / challenge word) to get a link and QR; anyone opening it sees Verified or Not verified, checked in their browser — works for regular wallets and smart wallets (ERC-1271 / ERC-6492)
 - **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum and Base; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
