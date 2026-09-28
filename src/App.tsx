@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { useConnection } from 'wagmi'
 import { Download } from 'lucide-react'
 
@@ -14,17 +15,21 @@ import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { RequestCard } from '@/components/dashboard/RequestCard'
 import { SendCard } from '@/components/dashboard/SendCard'
 import { TokensCard } from '@/components/dashboard/TokensCard'
-import { ApprovalsView } from '@/components/approvals/ApprovalsView'
-import { ExplainView } from '@/components/explain/ExplainView'
-import { GasView } from '@/components/gas/GasView'
-import { PayView } from '@/components/pay/PayView'
-import { ProofView } from '@/components/proof/ProofView'
-import { WatchView } from '@/components/watch/WatchView'
-import { WrappedView } from '@/components/wrapped/WrappedView'
 import { promptInstall, useCanInstall } from '@/lib/install'
 import { useCurrency, usePrices } from '@/lib/prices'
 import { navigate, useRoute, type Route } from '@/lib/route'
 import { cn } from '@/lib/utils'
+
+// Each page is its own chunk, so the first visit only downloads the wallet dashboard.
+const ApprovalsView = lazy(() =>
+  import('@/components/approvals/ApprovalsView').then((m) => ({ default: m.ApprovalsView })),
+)
+const ExplainView = lazy(() => import('@/components/explain/ExplainView').then((m) => ({ default: m.ExplainView })))
+const GasView = lazy(() => import('@/components/gas/GasView').then((m) => ({ default: m.GasView })))
+const PayView = lazy(() => import('@/components/pay/PayView').then((m) => ({ default: m.PayView })))
+const ProofView = lazy(() => import('@/components/proof/ProofView').then((m) => ({ default: m.ProofView })))
+const WatchView = lazy(() => import('@/components/watch/WatchView').then((m) => ({ default: m.WatchView })))
+const WrappedView = lazy(() => import('@/components/wrapped/WrappedView').then((m) => ({ default: m.WrappedView })))
 
 const TABS: { view: Route['view']; label: string }[] = [
   { view: 'dashboard', label: 'Wallet' },
@@ -109,23 +114,25 @@ function App() {
       <NetworkBanner />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-        {route.view === 'gas' ? (
-          <GasView />
-        ) : route.view === 'tx' ? (
-          <ExplainView key={route.target ?? ''} hash={route.target} />
-        ) : route.view === 'prove' || route.view === 'verify' ? (
-          <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
-        ) : route.view === 'watch' ? (
-          <WatchView />
-        ) : route.view === 'approvals' ? (
-          <ApprovalsView />
-        ) : route.view === 'pay' ? (
-          <PayView key={route.params?.toString()} params={route.params} />
-        ) : route.view === 'wrapped' ? (
-          <WrappedView key={route.target ?? ''} target={route.target} />
-        ) : (
-          <Dashboard />
-        )}
+        <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
+          {route.view === 'gas' ? (
+            <GasView />
+          ) : route.view === 'tx' ? (
+            <ExplainView key={route.target ?? ''} hash={route.target} />
+          ) : route.view === 'prove' || route.view === 'verify' ? (
+            <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
+          ) : route.view === 'watch' ? (
+            <WatchView />
+          ) : route.view === 'approvals' ? (
+            <ApprovalsView />
+          ) : route.view === 'pay' ? (
+            <PayView key={route.params?.toString()} params={route.params} />
+          ) : route.view === 'wrapped' ? (
+            <WrappedView key={route.target ?? ''} target={route.target} />
+          ) : (
+            <Dashboard />
+          )}
+        </Suspense>
       </main>
 
       <footer className="text-muted-foreground flex flex-col items-center gap-3 border-t py-6 text-center text-xs">
