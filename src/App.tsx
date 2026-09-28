@@ -86,6 +86,7 @@ function App() {
   return (
     <div className="flex min-h-svh flex-col">
       <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
+        <div aria-hidden className="from-brand-from via-brand-via to-brand-to h-0.5 bg-gradient-to-r" />
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 font-semibold" onClick={() => navigate({ view: 'dashboard' })}>
@@ -99,7 +100,9 @@ function App() {
                   onClick={() => navigate({ view: t.view })}
                   className={cn(
                     'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                    route.view === t.view ? 'bg-muted' : 'text-muted-foreground hover:text-foreground',
+                    route.view === t.view
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground',
                   )}
                 >
                   {t.label}
@@ -121,7 +124,7 @@ function App() {
               onClick={() => navigate({ view: t.view })}
               className={cn(
                 'flex-1 py-2 text-sm font-medium',
-                route.view === t.view ? 'border-foreground border-b-2' : 'text-muted-foreground',
+                route.view === t.view ? 'border-primary text-primary border-b-2' : 'text-muted-foreground',
               )}
             >
               {t.label}

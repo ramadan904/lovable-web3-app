@@ -235,7 +235,7 @@ export function GasView() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Fuel className="size-6" /> Live gas tracker
+          <Fuel className="text-primary size-6" /> Live gas tracker
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           What common actions cost right now on each network, updated every block. Base prices exclude its small L1 data

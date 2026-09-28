@@ -135,7 +135,7 @@ export function ViewWallet({ target }: { target?: string }) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <ScanEye className="size-6" /> View any wallet
+          <ScanEye className="text-primary size-6" /> View any wallet
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           A read-only look at any address or ENS name — no wallet connection needed. Nothing can be signed here.

@@ -193,7 +193,7 @@ export function ProofView({ params, mode }: { params?: URLSearchParams; mode: 'p
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Fingerprint className="size-6" /> Proof of ownership
+          <Fingerprint className="text-primary size-6" /> Proof of ownership
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Prove you own a wallet without sending a cent. Anyone with the link can check it — the math runs in their

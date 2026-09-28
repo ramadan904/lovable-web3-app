@@ -67,7 +67,7 @@ export function ExplainView({ hash }: { hash?: string }) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <ScrollText className="size-6" /> Transaction explainer
+          <ScrollText className="text-primary size-6" /> Transaction explainer
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Paste any transaction hash from Ethereum, Base or Sepolia and get it in plain English.

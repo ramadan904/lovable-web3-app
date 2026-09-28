@@ -114,7 +114,7 @@ export function Landing() {
           </p>
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
             Your wallet,{' '}
-            <span className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-400 bg-clip-text text-transparent">
+            <span className="text-brand">
               with a bodyguard
             </span>
           </h1>

@@ -125,7 +125,7 @@ export function WrappedView({ target }: { target?: string }) {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Sparkles className="size-6" /> Wallet Wrapped
+          <Sparkles className="text-primary size-6" /> Wallet Wrapped
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           The story of any wallet, from real on-chain data. Try yours, a friend’s, or vitalik.eth.

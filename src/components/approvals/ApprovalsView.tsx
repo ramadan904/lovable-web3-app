@@ -158,7 +158,7 @@ export function ApprovalsView() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <ShieldHalf className="size-6" /> Wallet Guard
+          <ShieldHalf className="text-primary size-6" /> Wallet Guard
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           A security check-up: health score, address-poisoning detector, and every app allowed to spend your tokens —
