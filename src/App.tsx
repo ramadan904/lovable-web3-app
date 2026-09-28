@@ -7,6 +7,7 @@ import { Landing } from '@/components/Landing'
 import { NetworkBanner } from '@/components/NetworkBanner'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
+import { ContactsCard } from '@/components/dashboard/ContactsCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { RequestCard } from '@/components/dashboard/RequestCard'
@@ -43,9 +44,8 @@ function Dashboard() {
           <ReceiveCard address={address} />
           <RequestCard address={address} />
         </div>
-        <div className="md:col-span-2">
-          <ActivityCard address={address} />
-        </div>
+        <ContactsCard />
+        <ActivityCard address={address} />
       </div>
     )
   return <Landing />

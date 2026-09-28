@@ -19,7 +19,8 @@ export const CHAIN_ALIASES: Record<string, string> = {
 
 const AMOUNT = String.raw`(\d+(?:\.\d+)?|\.\d+)`
 const TOKEN = String.raw`(eth|ether|usdc|\$)`
-const RECIPIENT = String.raw`(0x[a-fA-F0-9]{40}|[\w-]+(?:\.[\w-]+)+)`
+// An address, an ENS name, or a saved contact nickname (resolved by the Send form).
+const RECIPIENT = String.raw`(0x[a-fA-F0-9]{40}|@?[\w-]+(?:\.[\w-]+)*)`
 const CHAIN = String.raw`(?:\s+(?:on|via)\s+(\w+))?`
 
 const SEND_PATTERNS = [

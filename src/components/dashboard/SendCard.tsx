@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label'
 import { recordActivity, useActivity, type ActivityItem } from '@/lib/activity'
 import { useBalances } from '@/lib/balances'
 import { formatUsd, usePrices } from '@/lib/prices'
+import { findContact, useContacts } from '@/lib/contacts'
 import { useSendDraft } from '@/lib/sendDraft'
 import { useRecipientShield } from '@/lib/shield'
 import { USDC, USDC_DECIMALS } from '@/lib/tokens'
@@ -86,9 +87,12 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
   }
 
   // Recipient: a 0x address or an ENS name (resolved on Ethereum mainnet).
-  const ensName = !isAddress(toInput) && toInput.includes('.') ? safeNormalize(toInput) : undefined
+  // Recipient: a 0x address, a saved contact nickname, or an ENS name (resolved on Ethereum mainnet).
+  const contacts = useContacts()
+  const contact = !isAddress(toInput) && toInput ? findContact(toInput) : undefined
+  const ensName = !isAddress(toInput) && !contact && toInput.includes('.') ? safeNormalize(toInput) : undefined
   const ens = useEnsAddress({ name: ensName, chainId: mainnet.id, query: { enabled: !!ensName } })
-  const to: Address | undefined = isAddress(toInput) ? toInput : (ens.data ?? undefined)
+  const to: Address | undefined = isAddress(toInput) ? toInput : (contact?.address ?? ens.data ?? undefined)
 
   const { balances } = useBalances(address)
   const fees = useEstimateFeesPerGas({ chainId: chain?.id })
@@ -98,8 +102,12 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
 
   // Scam Shield
   const history = useActivity(address ?? '0x')
-  const known = useMemo(() => [...new Set(history.map((h) => h.to))], [history])
+  const known = useMemo(
+    () => [...new Set([...history.map((h) => h.to), ...contacts.map((c) => c.address)])],
+    [history, contacts],
+  )
   const shield = useRecipientShield({
+    contacts,
     to,
     chainId: chain?.id,
     chainName: chain?.name,
@@ -162,7 +170,14 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
   const pending = sendEth.isPending || sendToken.isPending
   const overBalance = units !== null && available !== undefined && units > available
   const canSend =
-    !!chain && !!address && !!to && units !== null && !overBalance && !pending && !wrongChain && (!danger || acknowledged)
+    !!chain &&
+    !!address &&
+    !!to &&
+    units !== null &&
+    !overBalance &&
+    !pending &&
+    !wrongChain &&
+    (!danger || acknowledged)
   const error = token === 'ETH' ? sendEth.error : sendToken.error
 
   function onSubmit(event: FormEvent) {
@@ -241,10 +256,10 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="send-to">Recipient (address or ENS name)</Label>
+            <Label htmlFor="send-to">Recipient (address, contact or ENS name)</Label>
             <Input
               id="send-to"
-              placeholder="0x… or name.eth"
+              placeholder="0x…, a contact, or name.eth"
               value={toInput}
               onChange={(e) => setToInput(e.target.value.trim())}
               aria-invalid={toInput !== '' && !to && !ens.isLoading}
@@ -252,6 +267,28 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
               autoComplete="off"
               spellCheck={false}
             />
+            {contacts.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {contacts.slice(0, 8).map((c) => (
+                  <button
+                    key={c.address}
+                    type="button"
+                    onClick={() => setToInput(c.name)}
+                    className={cn(
+                      'rounded-full border px-2.5 py-0.5 text-xs',
+                      contact?.address === c.address ? 'bg-foreground text-background' : 'hover:bg-muted',
+                    )}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {contact && (
+              <p className="text-muted-foreground text-xs">
+                {contact.name} → <span className="font-mono">{shortenAddress(contact.address)}</span>
+              </p>
+            )}
             {ensName && ens.isLoading && <p className="text-muted-foreground text-xs">Looking up {ensName}…</p>}
             {ensName && to && (
               <p className="text-muted-foreground text-xs">
@@ -260,7 +297,9 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
             )}
             {toInput !== '' && !to && !ens.isLoading && (
               <p className="text-destructive text-xs">
-                {ensName ? `${ensName} doesn't point to an address.` : "That isn't a valid address or ENS name."}
+                {ensName
+                  ? `${ensName} doesn't point to an address.`
+                  : "That isn't a valid address, contact or ENS name."}
               </p>
             )}
           </div>
@@ -288,19 +327,12 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
               onChange={(e) => setAmount(e.target.value.trim())}
               aria-invalid={amount !== '' && (units === null || overBalance)}
             />
-            {amount !== '' && units === null && (
-              <p className="text-destructive text-xs">Enter a positive number.</p>
-            )}
+            {amount !== '' && units === null && <p className="text-destructive text-xs">Enter a positive number.</p>}
             {overBalance && <p className="text-destructive text-xs">That's more than your balance.</p>}
           </div>
 
           {to && (
-            <ShieldPanel
-              findings={shield.findings}
-              loading={shield.loading}
-              fee={feeText}
-              remaining={remainingText}
-            />
+            <ShieldPanel findings={shield.findings} loading={shield.loading} fee={feeText} remaining={remainingText} />
           )}
           {danger && (
             <label className="flex items-start gap-2 text-sm">

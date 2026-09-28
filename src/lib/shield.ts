@@ -1,6 +1,7 @@
 import { zeroAddress, type Address } from 'viem'
 import { useBalance, useBytecode, useTransactionCount } from 'wagmi'
 
+import type { Contact } from '@/lib/contacts'
 import { USDC } from '@/lib/tokens'
 import type { ChainId } from '@/lib/wagmi'
 
@@ -25,6 +26,7 @@ export function findLookalike(to: Address, known: Address[]) {
 }
 
 type Params = {
+  contacts?: Contact[]
   to?: Address
   chainId?: ChainId
   chainName?: string
@@ -34,7 +36,7 @@ type Params = {
 }
 
 /** Safety checks on a transfer recipient, run before the user signs. */
-export function useRecipientShield({ to, chainId, chainName, token, self, known }: Params) {
+export function useRecipientShield({ to, chainId, chainName, token, self, known, contacts = [] }: Params) {
   const enabled = !!to && !!chainId
   const query = { enabled }
   const code = useBytecode({ address: to, chainId, query })
@@ -67,7 +69,11 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known 
       level: 'danger',
       title: 'Look-alike address — possible address-poisoning scam',
       detail: `It starts and ends like ${lookalike.slice(0, 6)}…${lookalike.slice(-4)}${
-        lookalike.toLowerCase() === self?.toLowerCase() ? ' (your own wallet)' : ', which you sent to before'
+        lookalike.toLowerCase() === self?.toLowerCase()
+          ? ' (your own wallet)'
+          : contacts.find((c) => c.address.toLowerCase() === lookalike.toLowerCase())
+            ? ` (your contact “${contacts.find((c) => c.address.toLowerCase() === lookalike.toLowerCase())!.name}”)`
+            : ', which you sent to before'
       }, but the middle is different. Copy the address from a trusted source, not your history.`,
     })
   }
@@ -104,7 +110,9 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known 
     })
   }
 
-  if (!lookalike && known.some((k) => k.toLowerCase() === lower)) {
+  const saved = contacts.find((c) => c.address.toLowerCase() === lower)
+  if (saved) findings.push({ level: 'ok', title: `Saved contact: ${saved.name}` })
+  else if (!lookalike && known.some((k) => k.toLowerCase() === lower)) {
     findings.push({ level: 'ok', title: "You've sent to this address before" })
   }
 

@@ -7,6 +7,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - send ETH or USDC to an address or ENS name on any of those networks (use Sepolia to test for free)
 - **Scam Shield** checks every recipient before you sign: look-alike (address-poisoning) addresses, token contracts, the zero address, smart contracts and brand-new addresses, plus the network fee in USD
 - track transfers sent from the app, with live confirmation status
+- **contacts**: save addresses by nickname, pick them in Send or type `send 5 usdc to mum`; Scam Shield confirms saved contacts and flags look-alikes of them
 - receive funds by QR code or copied address
 - get warned (and switch in one click) when the wallet is on an unsupported network
 - switch between light and dark mode
@@ -52,6 +53,7 @@ src/
   lib/holdings.ts                 token list parsing + scam-token filter
   lib/shield.ts                   Scam Shield recipient checks
   lib/sendDraft.ts                pre-fill the Send form from anywhere
+  lib/contacts.ts                 nickname address book (browser storage)
   lib/command.ts                  plain-English command parser
   lib/route.ts                    hash routes (#/, #/gas, #/wrapped/<who>, #/pay?…)
   lib/payLink.ts                  build and validate payment-request links
@@ -68,7 +70,7 @@ src/
   components/ConnectCard.tsx      connect prompt on the landing page
   components/NetworkBanner.tsx    unsupported-network warning
   components/CommandBar.tsx       Ctrl/⌘ K command palette
-  components/dashboard/           Portfolio, TokensCard, SendCard, ShieldPanel, ReceiveCard, RequestCard, ActivityCard
+  components/dashboard/           Portfolio, TokensCard, SendCard, ShieldPanel, ReceiveCard, RequestCard, ContactsCard, ActivityCard
   components/approvals/           Approval Guard page
   components/watch/               Whale Watch page
   components/proof/               create / verify ownership proofs
