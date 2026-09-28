@@ -6,6 +6,7 @@ import { useChains, useEnsAddress, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { ArrowDownLeft, ArrowUpRight, BookUser, Eye, ScanEye, Sparkles } from 'lucide-react'
 
+import { EnsProfile } from '@/components/EnsProfile'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { TokensCard } from '@/components/dashboard/TokensCard'
 import { NftsCard } from '@/components/dashboard/NftsCard'
@@ -173,6 +174,11 @@ export function ViewWallet({ target }: { target?: string }) {
             <div className="min-w-0">
               <p className="text-lg font-semibold">{label}</p>
               <p className="text-muted-foreground font-mono text-xs break-all">{address}</p>
+              {(ensName ?? reverse.data) && (
+                <div className="mt-3">
+                  <EnsProfile name={(ensName ?? reverse.data)!} />
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button

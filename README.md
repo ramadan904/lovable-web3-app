@@ -16,7 +16,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **install it like an app** on phone or desktop (web app manifest, maskable icons, install button where the browser supports it)
 - **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing
 - **Proof of ownership**: sign a free message (with an optional purpose / challenge word) to get a link and QR; anyone opening it sees Verified or Not verified, checked in their browser — works for regular wallets and smart wallets (ERC-1271 / ERC-6492)
-- **View any wallet** (`#/view/<address | name.eth | contact>`): a read-only dashboard — portfolio, tokens with spam filter, recent transactions in plain English — with one-click Wrap / Watch / Save contact, no connection needed
+- **View any wallet** (`#/view/<address | name.eth | contact>`): a read-only dashboard — portfolio, tokens with spam filter, recent transactions in plain English — with one-click Wrap / Watch / Save contact and the wallet's ENS profile (avatar, bio, X, GitHub, website), no connection needed
 - **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum and Base; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
 - **Approval Guard**: finds every token allowance and NFT operator approval the wallet ever granted (via explorer logs), checks which are still active on-chain, flags unlimited amounts, wallet (non-contract) spenders and unverified contracts, and revokes with one click — or, on wallets that support EIP-5792 batching (smart wallets / EIP-7702), revokes every risky approval with a single signature
 - **Payment links**: request an amount of ETH or USDC on a chosen network, share the link or QR, and the payer gets a pre-filled, Scam-Shield-checked payment page that only pays on the requested network
@@ -59,6 +59,7 @@ src/
   lib/sendDraft.ts                pre-fill the Send form from anywhere
   lib/contacts.ts                 nickname address book (browser storage)
   lib/txText.ts                   one-line tx descriptions + relative times
+  lib/links.ts                    sanitise ENS social/website records into safe links
   lib/command.ts                  plain-English command parser
   lib/route.ts                    hash routes (#/, #/gas, #/wrapped/<who>, #/pay?…)
   lib/payLink.ts                  build and validate payment-request links
