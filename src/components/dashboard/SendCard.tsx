@@ -57,7 +57,9 @@ function safeNormalize(name: string) {
   }
 }
 
-export function SendCard() {
+type Initial = { to: string; amount: string; token: Token; chainId?: number }
+
+export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title?: string } = {}) {
   const { address, chain } = useConnection()
   const chains = useChains()
   const switchChain = useSwitchChain()
@@ -66,9 +68,9 @@ export function SendCard() {
   const queryClient = useQueryClient()
   const prices = usePrices()
 
-  const [token, setToken] = useState<Token>('ETH')
-  const [toInput, setToInput] = useState('')
-  const [amount, setAmount] = useState('')
+  const [token, setToken] = useState<Token>(initial?.token ?? 'ETH')
+  const [toInput, setToInput] = useState(initial?.to ?? '')
+  const [amount, setAmount] = useState(initial?.amount ?? '')
   const [acknowledged, setAcknowledged] = useState(false)
   const [lastHash, setLastHash] = useState<Hash>()
   const receipt = useWaitForTransactionReceipt({ hash: lastHash })
@@ -155,10 +157,12 @@ export function SendCard() {
     setAmount(max > 0n ? formatUnits(max, DECIMALS[token]) : '0')
   }
 
+  // Payment requests pin the network; never let the payer send on a different one.
+  const wrongChain = initial?.chainId !== undefined && chain?.id !== initial.chainId
   const pending = sendEth.isPending || sendToken.isPending
   const overBalance = units !== null && available !== undefined && units > available
   const canSend =
-    !!chain && !!address && !!to && units !== null && !overBalance && !pending && (!danger || acknowledged)
+    !!chain && !!address && !!to && units !== null && !overBalance && !pending && !wrongChain && (!danger || acknowledged)
   const error = token === 'ETH' ? sendEth.error : sendToken.error
 
   function onSubmit(event: FormEvent) {
@@ -187,7 +191,7 @@ export function SendCard() {
   return (
     <Card id="send" className="scroll-mt-20">
       <CardHeader>
-        <CardTitle>Send</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>Send ETH or USDC. Every recipient is checked by Scam Shield first.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -310,6 +314,11 @@ export function SendCard() {
             </label>
           )}
 
+          {wrongChain && (
+            <p className="text-destructive text-sm">
+              This request is for {chains.find((c) => c.id === initial?.chainId)?.name}. Switch networks to pay.
+            </p>
+          )}
           <Button type="submit" disabled={!canSend} variant={danger ? 'destructive' : 'default'}>
             <Send />
             {pending ? 'Confirm in your wallet…' : `Send ${symbol}`}

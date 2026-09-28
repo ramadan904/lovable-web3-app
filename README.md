@@ -10,6 +10,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - get warned (and switch in one click) when the wallet is on an unsupported network
 - switch between light and dark mode
 - **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing
+- **Payment links**: request an amount of ETH or USDC on a chosen network, share the link or QR, and the payer gets a pre-filled, Scam-Shield-checked payment page that only pays on the requested network
 - **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest highlighted
 - **Wallet Wrapped**: a story-style recap of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
 
@@ -45,7 +46,8 @@ src/
   lib/shield.ts                   Scam Shield recipient checks
   lib/sendDraft.ts                pre-fill the Send form from anywhere
   lib/command.ts                  plain-English command parser
-  lib/route.ts                    hash routes (#/, #/gas, #/wrapped/<who>)
+  lib/route.ts                    hash routes (#/, #/gas, #/wrapped/<who>, #/pay?…)
+  lib/payLink.ts                  build and validate payment-request links
   lib/blockscout.ts               explorer API client for Wrapped
   lib/wrapped.ts                  Wrapped stats and personality rules
   lib/wallet.ts                   wallet-picker helpers
@@ -57,6 +59,7 @@ src/
   components/CommandBar.tsx       Ctrl/⌘ K command palette
   components/dashboard/           Portfolio, SendCard, ShieldPanel, ReceiveCard, ActivityCard
   components/gas/                 live gas tracker
+  components/pay/                 payment-request page
   components/wrapped/             Wallet Wrapped story + share-card renderer
   components/ui/                  shadcn/ui components
 ```

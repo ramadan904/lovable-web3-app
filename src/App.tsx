@@ -9,8 +9,10 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
+import { RequestCard } from '@/components/dashboard/RequestCard'
 import { SendCard } from '@/components/dashboard/SendCard'
 import { GasView } from '@/components/gas/GasView'
+import { PayView } from '@/components/pay/PayView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
 import { navigate, useRoute, type Route } from '@/lib/route'
 import { cn } from '@/lib/utils'
@@ -30,6 +32,9 @@ function Dashboard() {
         <SendCard />
         <div className="flex flex-col gap-6">
           <ReceiveCard address={address} />
+          <RequestCard address={address} />
+        </div>
+        <div className="md:col-span-2">
           <ActivityCard address={address} />
         </div>
       </div>
@@ -107,6 +112,8 @@ function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         {route.view === 'gas' ? (
           <GasView />
+        ) : route.view === 'pay' ? (
+          <PayView key={route.params?.toString()} params={route.params} />
         ) : route.view === 'wrapped' ? (
           <WrappedView key={route.target ?? ''} target={route.target} />
         ) : (
