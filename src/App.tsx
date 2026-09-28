@@ -3,6 +3,8 @@ import { Hexagon } from 'lucide-react'
 
 import { ConnectButton } from '@/components/ConnectButton'
 import { ConnectCard } from '@/components/ConnectCard'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { SendCard } from '@/components/dashboard/SendCard'
@@ -19,7 +21,10 @@ function App() {
             <Hexagon className="size-5" />
             Lovable Web3
           </span>
-          <ConnectButton />
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <ConnectButton />
+          </div>
         </div>
       </header>
 
@@ -28,14 +33,17 @@ function App() {
           <div className="grid gap-6 md:grid-cols-2">
             <Portfolio address={address} />
             <SendCard />
-            <ReceiveCard address={address} />
+            <div className="flex flex-col gap-6">
+              <ReceiveCard address={address} />
+              <ActivityCard address={address} />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-8 py-10 text-center">
             <div>
               <h1 className="text-4xl font-bold tracking-tight">Your wallet, one screen</h1>
               <p className="text-muted-foreground mt-2">
-                See ETH and USDC on Ethereum, Base and Sepolia, then send or receive in a click.
+                See ETH and USDC on Ethereum, Base and Sepolia, then send, receive and track transfers.
               </p>
             </div>
             <ConnectCard />

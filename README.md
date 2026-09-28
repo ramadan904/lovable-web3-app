@@ -3,8 +3,10 @@
 A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
 
 - see ETH and USDC balances on Ethereum, Base and Sepolia at once
-- send ETH on any of those networks (use Sepolia to test for free)
+- send ETH or USDC on any of those networks (use Sepolia to test for free)
+- track transfers sent from the app, with live confirmation status
 - copy your address to receive funds
+- switch between light and dark mode
 
 Tech:
 
@@ -34,9 +36,11 @@ src/
   lib/wagmi.ts                    chains, connectors and RPC transports
   lib/tokens.ts                   USDC contract addresses per chain
   lib/wallet.ts                   wallet-picker helpers
+  lib/activity.ts                 sent-transaction history (browser storage)
+  lib/theme.ts                    light / dark mode
   components/ConnectButton.tsx    header connect / account control
   components/ConnectCard.tsx      connect prompt on the landing page
-  components/dashboard/           Portfolio, SendCard, ReceiveCard
+  components/dashboard/           Portfolio, SendCard, ReceiveCard, ActivityCard
   components/ui/                  shadcn/ui components
 ```
 
