@@ -4,6 +4,7 @@ import { useBlockNumber, useChains, useEstimateFeesPerGas } from 'wagmi'
 import { mainnet, base } from 'wagmi/chains'
 import { BellRing, Fuel, PartyPopper, Trophy } from 'lucide-react'
 
+import { BlockPulse } from '@/components/gas/BlockPulse'
 import { PriceAlert } from '@/components/gas/PriceAlert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -242,6 +243,7 @@ export function GasView() {
           fee.
         </p>
       </div>
+      <BlockPulse />
       <div className="grid gap-6 md:grid-cols-3">
         {chains.map((c) => (
           <ChainGasCard key={c.id} chainId={c.id} name={c.name} testnet={c.testnet} cheapest={c.id === cheapestId} />
