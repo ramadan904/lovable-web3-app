@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 
+import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -141,7 +142,8 @@ export function ApprovalsView() {
   const explorer = chain?.blockExplorers?.default.url
 
   const approvals = scan.data?.approvals ?? []
-  const risky = approvals.filter((a) => a.risks.some((r) => r.level !== 'info')).length
+  const riskyList = approvals.filter((a) => a.risks.some((r) => r.level !== 'info'))
+  const risky = riskyList.length
 
   return (
     <div className="flex flex-col gap-6">
@@ -216,6 +218,9 @@ export function ApprovalsView() {
                     >
                       {risky ? `${risky} need${risky === 1 ? 's' : ''} attention` : 'All look fine'}
                     </p>
+                  </div>
+                  <div className="pt-4">
+                    <RevokeAll approvals={riskyList} chainId={chainId} />
                   </div>
                   <ul className="divide-y">
                     {approvals.map((a) => (
