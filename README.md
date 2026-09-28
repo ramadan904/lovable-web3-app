@@ -1,4 +1,6 @@
-# Lovable Web3 App
+# Wallet Bodyguard
+
+_Your wallet, with a bodyguard._
 
 A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
 

@@ -131,7 +131,7 @@ export function WrappedView({ target }: { target?: string }) {
 
   const shareUrl = `${window.location.origin}${window.location.pathname}#/wrapped/${encodeURIComponent(ensName ?? address ?? '')}`
   const tweet = stats
-    ? `My Wallet Wrapped on ${chainName}: I'm a ${stats.persona.emoji} ${stats.persona.title} with ${stats.totalTx.toLocaleString()} transactions. What's yours?`
+    ? `My Wallet Wrapped on ${chainName}: I'm a ${stats.persona.emoji} ${stats.persona.title} with ${stats.totalTx.toLocaleString()} transactions. What's yours? (via Wallet Bodyguard)`
     : ''
 
   return (

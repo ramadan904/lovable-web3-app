@@ -99,7 +99,7 @@ function App() {
           <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 font-semibold" onClick={() => navigate({ view: 'dashboard' })}>
               <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-6" />
-              <span className="hidden whitespace-nowrap xl:inline">Lovable Web3</span>
+              <span className="hidden whitespace-nowrap xl:inline">Wallet Bodyguard</span>
             </button>
             <nav className="hidden items-center gap-1 lg:flex">
               {TABS.map((t) => (

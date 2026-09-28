@@ -27,7 +27,7 @@ type FeedItem = { tx: BsTx; who: Watched; chain: (typeof CHAINS)[number]; time: 
 
 type Batch = { who: Watched; chain: (typeof CHAINS)[number]; items: BsTx[] }
 
-const DEFAULT_TITLE = 'Lovable Web3 App'
+const DEFAULT_TITLE = 'Wallet Bodyguard'
 const setTabTitle = (title: string) => {
   document.title = title
 }

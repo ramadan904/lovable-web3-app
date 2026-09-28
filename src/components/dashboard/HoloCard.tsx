@@ -93,7 +93,7 @@ export function HoloCard({
                     alt=""
                     className="size-6 rounded-md ring-1 ring-white/40"
                   />
-                  LOVABLE WEB3
+                  WALLET BODYGUARD
                 </div>
                 <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold tracking-widest backdrop-blur">
                   SELF-CUSTODY

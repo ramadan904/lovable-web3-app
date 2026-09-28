@@ -1,6 +1,6 @@
 {
-  "name": "Lovable Web3 — your wallet, with a bodyguard",
-  "short_name": "Lovable Web3",
+  "name": "Wallet Bodyguard — your wallet, with a bodyguard",
+  "short_name": "Bodyguard",
   "description": "Wallet dashboard with Scam Shield, Approval Guard, Whale Watch, Wallet Wrapped, payment links and more.",
   "start_url": "./",
   "scope": "./",
