@@ -4,6 +4,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 
 - see ETH and USDC balances on Ethereum, Base and Sepolia at once, with USD values and a total
 - see **every token** held on each network with USD values, with scam/spam airdrops hidden automatically (website-in-name bait, explorer-flagged scams, fake USDC/USDT/WETH/DAI contracts and look-alike Cyrillic/Greek letters)
+- browse **NFTs** per network as an image gallery (ERC-721 and ERC-1155 with counts); spam collections are hidden and their images never loaded
 - send ETH or USDC to an address or ENS name on any of those networks (use Sepolia to test for free)
 - **Scam Shield** checks every recipient before you sign: look-alike (address-poisoning) addresses, token contracts, the zero address, smart contracts and brand-new addresses, plus the network fee in USD
 - track transfers sent from the app, with live confirmation status
@@ -53,6 +54,7 @@ src/
   lib/balances.ts                 ETH + USDC balances on every chain in one batch
   lib/prices.ts                   USD prices from CoinGecko
   lib/holdings.ts                 token list parsing + scam-token filter
+  lib/nfts.ts                     NFT parsing, ipfs/ar URL resolution, spam filter
   lib/shield.ts                   Scam Shield recipient checks
   lib/sendDraft.ts                pre-fill the Send form from anywhere
   lib/contacts.ts                 nickname address book (browser storage)
@@ -73,7 +75,7 @@ src/
   components/ConnectCard.tsx      connect prompt on the landing page
   components/NetworkBanner.tsx    unsupported-network warning
   components/CommandBar.tsx       Ctrl/⌘ K command palette
-  components/dashboard/           Portfolio, TokensCard, SendCard, ShieldPanel, ReceiveCard, RequestCard, ContactsCard, ActivityCard
+  components/dashboard/           Portfolio, TokensCard, NftsCard, SendCard, ShieldPanel, ReceiveCard, RequestCard, ContactsCard, ActivityCard
   components/approvals/           Approval Guard page
   components/watch/               Whale Watch page
   components/view/                read-only view of any wallet

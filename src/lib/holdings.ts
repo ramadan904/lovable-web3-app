@@ -97,6 +97,16 @@ const CONFUSABLES: Record<string, string> = {
 }
 const deconfuse = (text: string) => [...text.normalize('NFKC')].map((ch) => CONFUSABLES[ch] ?? ch).join('')
 
+/** Spam check for free-text names (NFT collections, token names). */
+export function spamText(...texts: (string | null | undefined)[]) {
+  for (const t of texts) {
+    if (!t) continue
+    if (LINKY.test(t)) return 'Name contains a website — classic airdrop scam'
+    if (BAIT.test(t)) return 'Bait wording (claim / reward / airdrop)'
+  }
+  return undefined
+}
+
 /** Returns a reason if the token looks like spam, else undefined. */
 export function spamReason(chainId: number, address: string, name: string, symbol: string, reputation?: string | null) {
   if (reputation && reputation.toLowerCase() === 'scam') return 'Flagged as scam by the explorer'

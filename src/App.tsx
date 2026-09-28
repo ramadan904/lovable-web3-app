@@ -11,6 +11,7 @@ import { NetworkBanner } from '@/components/NetworkBanner'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { ContactsCard } from '@/components/dashboard/ContactsCard'
+import { NftsCard } from '@/components/dashboard/NftsCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { RequestCard } from '@/components/dashboard/RequestCard'
@@ -51,6 +52,9 @@ function Dashboard() {
         </ErrorBoundary>
         <ErrorBoundary label="Tokens">
           <TokensCard address={address} />
+        </ErrorBoundary>
+        <ErrorBoundary label="NFTs">
+          <NftsCard address={address} />
         </ErrorBoundary>
         <ErrorBoundary label="Send">
           <SendCard />
