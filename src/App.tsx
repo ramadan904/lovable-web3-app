@@ -3,7 +3,7 @@ import { Hexagon } from 'lucide-react'
 
 import { CommandBar } from '@/components/CommandBar'
 import { ConnectButton } from '@/components/ConnectButton'
-import { ConnectCard } from '@/components/ConnectCard'
+import { Landing } from '@/components/Landing'
 import { NetworkBanner } from '@/components/NetworkBanner'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
@@ -46,24 +46,7 @@ function Dashboard() {
         </div>
       </div>
     )
-  return (
-    <div className="flex flex-col items-center gap-8 py-10 text-center">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Your wallet, with a bodyguard</h1>
-        <p className="text-muted-foreground mx-auto mt-2 max-w-xl">
-          Balances on Ethereum, Base and Sepolia, sends protected by Scam Shield, plain-English commands, and a
-          Wrapped story for any wallet.
-        </p>
-      </div>
-      <ConnectCard />
-      <button
-        className="text-muted-foreground text-sm underline underline-offset-4"
-        onClick={() => navigate({ view: 'wrapped', target: 'vitalik.eth' })}
-      >
-        No wallet? See vitalik.eth’s Wallet Wrapped →
-      </button>
-    </div>
-  )
+  return <Landing />
 }
 
 function App() {
