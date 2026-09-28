@@ -4,6 +4,7 @@ import { useBlockNumber, useChains, useEstimateFeesPerGas } from 'wagmi'
 import { mainnet, base } from 'wagmi/chains'
 import { BellRing, Fuel, PartyPopper, Trophy } from 'lucide-react'
 
+import { PriceAlert } from '@/components/gas/PriceAlert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -246,7 +247,10 @@ export function GasView() {
           <ChainGasCard key={c.id} chainId={c.id} name={c.name} testnet={c.testnet} cheapest={c.id === cheapestId} />
         ))}
       </div>
-      <GasAlert fees={{ [mainnet.id]: eth.perGas, [base.id]: l2.perGas }} />
+      <div className="grid gap-6 md:grid-cols-2">
+        <GasAlert fees={{ [mainnet.id]: eth.perGas, [base.id]: l2.perGas }} />
+        <PriceAlert />
+      </div>
     </div>
   )
 }

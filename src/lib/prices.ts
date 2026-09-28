@@ -68,6 +68,12 @@ export function usePrices() {
   })
 }
 
+/** A USD amount converted to the viewer's currency (falls back to USD when no rate is known). */
+export function convertUsd(usd: number): { value: number; code: Currency } {
+  const rate = rates[currency]
+  return rate ? { value: usd * rate, code: currency } : { value: usd, code: 'USD' }
+}
+
 /** Formats a USD amount in the viewer's chosen currency. */
 export function formatFiat(usd: number) {
   const rate = rates[currency]
