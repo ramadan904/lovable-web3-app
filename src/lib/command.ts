@@ -7,7 +7,11 @@ export type Command =
   | { kind: 'currency'; currency: 'USD' | 'NGN' | 'EUR' | 'GBP' }
   | { kind: 'copy' }
   | { kind: 'receive' }
-  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx'; target?: string }
+  | {
+      kind: 'goto'
+      view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx' | 'view'
+      target?: string
+    }
 
 export const CHAIN_ALIASES: Record<string, string> = {
   ethereum: 'ethereum',
@@ -88,6 +92,9 @@ export function parseCommand(input: string): Command | null {
     return { kind: 'goto', view: 'prove' }
   if (/^(?:watch|whales?|whale watch|watchlist|alerts?)$/i.test(text)) return { kind: 'goto', view: 'watch' }
 
+  m = text.match(/^(?:view|look up|lookup|check|open|show)\s+(0x[a-fA-F0-9]{40}|@?[\w-]+(?:\.[\w-]+)*)$/i)
+  if (m && !/^(?:address|my|qr|gas|approvals?)$/i.test(m[1])) return { kind: 'goto', view: 'view', target: m[1] }
+
   m = text.match(/^wrap(?:ped)?(?:\s+(?:for\s+)?(\S+))?$/i)
   if (m) return { kind: 'goto', view: 'wrapped', target: m[1] }
 
@@ -105,6 +112,7 @@ export const EXAMPLES = [
   'pay 0x000000000000000000000000000000000000dEaD 5 usdc on base',
   'switch to base',
   'wrapped vitalik.eth',
+  'view vitalik.eth',
   'gas',
   'revoke',
   'watch',

@@ -29,6 +29,7 @@ const GasView = lazy(() => import('@/components/gas/GasView').then((m) => ({ def
 const PayView = lazy(() => import('@/components/pay/PayView').then((m) => ({ default: m.PayView })))
 const ProofView = lazy(() => import('@/components/proof/ProofView').then((m) => ({ default: m.ProofView })))
 const WatchView = lazy(() => import('@/components/watch/WatchView').then((m) => ({ default: m.WatchView })))
+const ViewWallet = lazy(() => import('@/components/view/ViewWallet').then((m) => ({ default: m.ViewWallet })))
 const WrappedView = lazy(() => import('@/components/wrapped/WrappedView').then((m) => ({ default: m.WrappedView })))
 
 const TABS: { view: Route['view']; label: string }[] = [
@@ -117,6 +118,8 @@ function App() {
         <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
           {route.view === 'gas' ? (
             <GasView />
+          ) : route.view === 'view' ? (
+            <ViewWallet key={route.target ?? ''} target={route.target} />
           ) : route.view === 'tx' ? (
             <ExplainView key={route.target ?? ''} hash={route.target} />
           ) : route.view === 'prove' || route.view === 'verify' ? (

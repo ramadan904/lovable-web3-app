@@ -121,6 +121,12 @@ export function Landing() {
             <ConnectCard />
           </div>
         </div>
+        <button
+          className="text-muted-foreground text-sm underline underline-offset-4"
+          onClick={() => navigate({ view: 'view', target: 'vitalik.eth' })}
+        >
+          No wallet? Look inside vitalik.eth’s wallet →
+        </button>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

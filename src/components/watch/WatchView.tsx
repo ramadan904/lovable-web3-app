@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useQueries, type UseQueryResult } from '@tanstack/react-query'
-import { formatUnits, isAddress, type Address } from 'viem'
+import { isAddress, type Address } from 'viem'
 import { normalize } from 'viem/ens'
 import { getEnsAddress } from 'wagmi/actions'
 import { base, mainnet } from 'wagmi/chains'
@@ -13,7 +13,8 @@ import { BLOCKSCOUT } from '@/lib/blockscout'
 import { config } from '@/lib/wagmi'
 import { addWatched, MAX_WATCHED, removeWatched, useWatchlist, type Watched } from '@/lib/watchlist'
 import type { BsTx } from '@/lib/wrapped'
-import { cn, formatAmount, shortenAddress } from '@/lib/utils'
+import { describeTx, timeAgo } from '@/lib/txText'
+import { cn, shortenAddress } from '@/lib/utils'
 
 const CHAINS = [
   { id: mainnet.id, name: 'Ethereum', explorer: 'https://etherscan.io' },
@@ -23,31 +24,6 @@ const POLL_MS = 30_000
 
 type FeedItem = { tx: BsTx; who: Watched; chain: (typeof CHAINS)[number]; time: number }
 
-function describe({ tx, who }: FeedItem) {
-  const me = who.address.toLowerCase()
-  const outgoing = tx.from?.hash?.toLowerCase() === me
-  const other = outgoing ? tx.to : tx.from
-  const otherLabel =
-    (other && 'name' in other && other.name) || (other?.hash ? shortenAddress(other.hash) : 'a contract')
-  const eth = Number(formatUnits(BigInt(tx.value ?? '0'), 18))
-  const method = tx.method && !tx.method.startsWith('0x') ? tx.method : undefined
-  const failed = tx.status === 'error' ? ' (failed)' : ''
-  if (eth > 0)
-    return {
-      outgoing,
-      text: `${outgoing ? 'sent' : 'received'} ${formatAmount(eth)} ETH ${outgoing ? 'to' : 'from'} ${otherLabel}${failed}`,
-    }
-  if (outgoing) return { outgoing, text: `called ${method ?? 'a function'} on ${otherLabel}${failed}` }
-  return { outgoing, text: `was sent a transaction by ${otherLabel}${failed}` }
-}
-
-function ago(ms: number) {
-  const s = Math.max(0, Math.round((Date.now() - ms) / 1000))
-  if (s < 60) return `${s}s ago`
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`
-  if (s < 86_400) return `${Math.floor(s / 3600)}h ago`
-  return `${Math.floor(s / 86_400)}d ago`
-}
 
 type Batch = { who: Watched; chain: (typeof CHAINS)[number]; items: BsTx[] }
 
@@ -121,7 +97,7 @@ export function WatchView() {
       notified.current.add(key)
       if (permission === 'granted') {
         try {
-          new Notification(`${f.who.label} on ${f.chain.name}`, { body: describe(f).text, tag: key })
+          new Notification(`${f.who.label} on ${f.chain.name}`, { body: describeTx(f.tx, f.who.address).text, tag: key })
         } catch {
           // some browsers only allow notifications from a service worker
         }
@@ -271,7 +247,7 @@ export function WatchView() {
             ) : (
               <ul className="divide-y">
                 {feed.slice(0, 20).map((f) => {
-                  const d = describe(f)
+                  const d = describeTx(f.tx, f.who.address)
                   const isNew = f.time > startedAt - 5_000
                   return (
                     <li
@@ -293,7 +269,7 @@ export function WatchView() {
                           )}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          {f.chain.name} · {ago(f.time)} ·{' '}
+                          {f.chain.name} · {timeAgo(f.time)} ·{' '}
                           <a
                             href={`${f.chain.explorer}/tx/${f.tx.hash}`}
                             target="_blank"
