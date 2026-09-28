@@ -4,6 +4,7 @@ import { ArrowUpRight, CircleCheck, CircleX, Loader } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useActivity, type ActivityItem } from '@/lib/activity'
+import { navigate } from '@/lib/route'
 import { shortenAddress } from '@/lib/utils'
 import type { ChainId } from '@/lib/wagmi'
 
@@ -47,8 +48,13 @@ export function ActivityCard({ address }: { address: Address }) {
                       </span>
                     </p>
                     <p className="text-muted-foreground text-xs">
-                      {chain?.name ?? `Chain ${item.chainId}`} ·{' '}
-                      {new Date(item.time).toLocaleString()}
+                      {chain?.name ?? `Chain ${item.chainId}`} · {new Date(item.time).toLocaleString()} ·{' '}
+                      <button
+                        className="underline underline-offset-4"
+                        onClick={() => navigate({ view: 'tx', target: item.hash })}
+                      >
+                        explain
+                      </button>
                     </p>
                   </div>
                   {explorer && (

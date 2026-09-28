@@ -6,6 +6,7 @@ import {
   Fingerprint,
   Fuel,
   Link2,
+  ScrollText,
   ShieldCheck,
   ShieldHalf,
   Sparkles,
@@ -79,6 +80,14 @@ const FEATURES: Feature[] = [
     tint: 'from-rose-500/20 to-red-500/5 text-rose-600',
   },
   {
+    icon: ScrollText,
+    title: 'Transaction explainer',
+    body: 'Paste any tx hash and get it in plain English — swaps, approvals, mints, failures and fees.',
+    tint: 'from-violet-500/20 to-purple-500/5 text-violet-600',
+    to: { view: 'tx' },
+    cta: 'Explain a transaction',
+  },
+  {
     icon: Fuel,
     title: 'Live gas tracker',
     body: 'What a send, swap or mint costs right now on each network, updated every block.',
@@ -103,7 +112,7 @@ export function Landing() {
             </span>
           </h1>
           <p className="text-muted-foreground mx-auto mt-3 max-w-xl">
-            Nine tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale alerts,
+            Ten tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale alerts,
             and a Wrapped story for any address.
           </p>
         </div>

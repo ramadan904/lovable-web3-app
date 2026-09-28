@@ -13,6 +13,7 @@ import { RequestCard } from '@/components/dashboard/RequestCard'
 import { SendCard } from '@/components/dashboard/SendCard'
 import { TokensCard } from '@/components/dashboard/TokensCard'
 import { ApprovalsView } from '@/components/approvals/ApprovalsView'
+import { ExplainView } from '@/components/explain/ExplainView'
 import { GasView } from '@/components/gas/GasView'
 import { PayView } from '@/components/pay/PayView'
 import { ProofView } from '@/components/proof/ProofView'
@@ -104,6 +105,8 @@ function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         {route.view === 'gas' ? (
           <GasView />
+        ) : route.view === 'tx' ? (
+          <ExplainView key={route.target ?? ''} hash={route.target} />
         ) : route.view === 'prove' || route.view === 'verify' ? (
           <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
         ) : route.view === 'watch' ? (

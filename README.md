@@ -16,6 +16,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum and Base; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
 - **Approval Guard**: finds every token allowance and NFT operator approval the wallet ever granted (via explorer logs), checks which are still active on-chain, flags unlimited amounts, wallet (non-contract) spenders and unverified contracts, and revokes with one click
 - **Payment links**: request an amount of ETH or USDC on a chosen network, share the link or QR, and the payer gets a pre-filled, Scam-Shield-checked payment page that only pays on the requested network
+- **Transaction explainer**: paste any tx hash (or type it in the command bar) and get a plain-English headline — swaps, sends, mints, approvals (with unlimited-approval warnings), NFT operator grants and failures with reasons — plus token movements and fees in USD; searches Ethereum, Base and Sepolia
 - **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest highlighted
 - **Wallet Wrapped**: a story-style recap of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
 
@@ -59,6 +60,7 @@ src/
   lib/approvals.ts                Approval Guard scanner and risk rules
   lib/watchlist.ts                Whale Watch list (browser storage)
   lib/proof.ts                    proof-of-ownership message and link format
+  lib/explain.ts                  transaction → plain-English rules
   lib/wallet.ts                   wallet-picker helpers
   lib/activity.ts                 sent-transaction history (browser storage)
   lib/theme.ts                    light / dark mode
@@ -70,6 +72,8 @@ src/
   components/approvals/           Approval Guard page
   components/watch/               Whale Watch page
   components/proof/               create / verify ownership proofs
+  components/explain/             transaction explainer page
+  components/Landing.tsx          signed-out feature showcase
   components/gas/                 live gas tracker
   components/pay/                 payment-request page
   components/wrapped/             Wallet Wrapped story + share-card renderer

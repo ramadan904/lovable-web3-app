@@ -6,7 +6,7 @@ export type Command =
   | { kind: 'theme'; theme: 'light' | 'dark' }
   | { kind: 'copy' }
   | { kind: 'receive' }
-  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove'; target?: string }
+  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx'; target?: string }
 
 export const CHAIN_ALIASES: Record<string, string> = {
   ethereum: 'ethereum',
@@ -66,6 +66,10 @@ export function parseCommand(input: string): Command | null {
   if (/^(?:revoke|approvals?|allowances?|guard|approval guard|check approvals)$/i.test(text))
     return { kind: 'goto', view: 'approvals' }
 
+  m = text.match(/^(?:explain|decode|what(?:'s| is| happened in)?)?\s*(0x[0-9a-fA-F]{64})\??$/i)
+  if (m) return { kind: 'goto', view: 'tx', target: m[1] }
+  if (/^(?:explain|decode|explain (?:a )?tx|explainer)$/i.test(text)) return { kind: 'goto', view: 'tx' }
+
   if (/^(?:prove(?: it'?s me| ownership| it)?|proof|sign(?: a)? proof|verify me)$/i.test(text))
     return { kind: 'goto', view: 'prove' }
   if (/^(?:watch|whales?|whale watch|watchlist|alerts?)$/i.test(text)) return { kind: 'goto', view: 'watch' }
@@ -91,6 +95,7 @@ export const EXAMPLES = [
   'revoke',
   'watch',
   'prove',
+  'explain',
   'dark mode',
   'copy address',
 ]
