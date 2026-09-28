@@ -7,6 +7,7 @@ import { Layers, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { nftAbi, type Approval } from '@/lib/approvals'
 import type { ChainId } from '@/lib/wagmi'
+import { celebrate } from '@/lib/celebrate'
 
 /**
  * EIP-5792: wallets that support atomic batches (smart wallets, EIP-7702 accounts)
@@ -27,6 +28,7 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
 
   useEffect(() => {
     if (!done) return
+    celebrate('big')
     const t = setTimeout(() => queryClient.invalidateQueries({ queryKey: ['approvals'] }), 4000)
     return () => clearTimeout(t)
   }, [done, queryClient])

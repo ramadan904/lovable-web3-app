@@ -15,6 +15,7 @@ import { buildProofLink, buildProofMessage, readProof, signedAt, type Proof } fr
 import { navigate } from '@/lib/route'
 import { shortenAddress } from '@/lib/utils'
 import { config } from '@/lib/wagmi'
+import { celebrate } from '@/lib/celebrate'
 
 function CreateProof() {
   const { address, status } = useConnection()
@@ -34,7 +35,15 @@ function CreateProof() {
 
   function create() {
     const message = buildProofMessage(address!, purpose)
-    sign.mutate({ message }, { onSuccess: (signature) => setProof({ address: address!, message, signature }) })
+    sign.mutate(
+      { message },
+      {
+        onSuccess: (signature) => {
+          setProof({ address: address!, message, signature })
+          celebrate()
+        },
+      },
+    )
   }
 
   async function copy() {

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { formatEther, isAddress, parseEther, type Address, type Hash } from 'viem'
 import {
   useBalance,
@@ -33,6 +33,7 @@ import {
 } from '@/lib/savingsLock'
 import { cn, formatAmount } from '@/lib/utils'
 import { config, type ChainId } from '@/lib/wagmi'
+import { celebrate } from '@/lib/celebrate'
 
 const errText = (e: Error) => ('shortMessage' in e ? String(e.shortMessage) : e.message)
 const isoDate = (d: Date) => d.toISOString().slice(0, 10)
@@ -75,10 +76,15 @@ function CreateLock({ owner }: { owner: Address }) {
   const created = receipt.data?.status === 'success'
   const canCreate = unlockOk && value !== undefined && onChain && (!realMoney || ack) && !busy && !created
 
-  // Remember the vault as soon as its deployment is mined.
+  // Remember the vault as soon as its deployment is mined (and celebrate once per deployment).
+  const celebrated = useRef<string | undefined>(undefined)
   useEffect(() => {
     const address = receipt.data?.contractAddress
-    if (receipt.data?.status === 'success' && address && unlock)
+    if (receipt.data?.status === 'success' && address && unlock) {
+      if (celebrated.current !== receipt.data.transactionHash) {
+        celebrated.current = receipt.data.transactionHash
+        celebrate('big')
+      }
       rememberVault({
         address,
         chainId,
@@ -87,6 +93,7 @@ function CreateLock({ owner }: { owner: Address }) {
         name: name.trim() || 'Savings',
         createdAt: Math.floor(Date.now() / 1000),
       })
+    }
   }, [receipt.data, chainId, owner, unlock, name])
 
   function onSubmit(e: FormEvent) {
@@ -243,8 +250,15 @@ function VaultCard({ v }: { v: Vault }) {
   const receipt = useWaitForTransactionReceipt({ hash: lastHash, chainId: v.chainId as ChainId })
   const { refetch } = balance
   useEffect(() => {
-    if (receipt.data) refetch()
-  }, [receipt.data, refetch])
+    if (!receipt.data) return
+    refetch()
+    if (
+      receipt.data.status === 'success' &&
+      receipt.data.to?.toLowerCase() === v.address.toLowerCase() &&
+      withdraw.data === receipt.data.transactionHash
+    )
+      celebrate('big')
+  }, [receipt.data, refetch, v.address, withdraw.data])
 
   const c = chains.find((x) => x.id === v.chainId)
   const left = v.unlockTime - now

@@ -29,6 +29,7 @@ import { useSendDraft } from '@/lib/sendDraft'
 import { useRecipientShield } from '@/lib/shield'
 import { USDC, USDC_DECIMALS } from '@/lib/tokens'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
+import { celebrate } from '@/lib/celebrate'
 
 type Token = ActivityItem['token']
 const TOKENS: Token[] = ['ETH', 'USDC']
@@ -151,7 +152,9 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
       : undefined
 
   useEffect(() => {
-    if (receipt.data?.status === 'success') queryClient.invalidateQueries()
+    if (receipt.data?.status !== 'success') return
+    queryClient.invalidateQueries()
+    celebrate()
   }, [receipt.data?.status, queryClient])
 
   function fillMax() {

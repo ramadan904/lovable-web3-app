@@ -2,6 +2,8 @@
 
 A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
 
+- a **holographic wallet card** that tilts with a moving sheen and flips to your receive QR code
+- **confetti** 🎉 on confirmed sends, created locks, withdrawals, batch revokes and proofs (off with reduced motion)
 - see ETH and USDC balances on Ethereum, Base and Sepolia at once, with USD values and a total
 - see **every token** held on each network with USD values, with scam/spam airdrops hidden automatically (website-in-name bait, explorer-flagged scams, fake USDC/USDT/WETH/DAI contracts and look-alike Cyrillic/Greek letters)
 - browse **NFTs** per network as an image gallery (ERC-721 and ERC-1155 with counts); spam collections are hidden and their images never loaded

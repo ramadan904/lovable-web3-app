@@ -11,6 +11,7 @@ import { NetworkBanner } from '@/components/NetworkBanner'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { ContactsCard } from '@/components/dashboard/ContactsCard'
+import { HoloCard } from '@/components/dashboard/HoloCard'
 import { NftsCard } from '@/components/dashboard/NftsCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
@@ -49,6 +50,9 @@ function Dashboard() {
   if (status === 'connected' && address)
     return (
       <div className="grid gap-6 md:grid-cols-2">
+        <ErrorBoundary label="Wallet card">
+          <HoloCard address={address} />
+        </ErrorBoundary>
         <ErrorBoundary label="Portfolio">
           <Portfolio address={address} />
         </ErrorBoundary>
