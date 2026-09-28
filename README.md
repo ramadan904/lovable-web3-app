@@ -17,6 +17,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing
 - **Proof of ownership**: sign a free message (with an optional purpose / challenge word) to get a link and QR; anyone opening it sees Verified or Not verified, checked in their browser — works for regular wallets and smart wallets (ERC-1271 / ERC-6492)
 - **View any wallet** (`#/view/<address | name.eth | contact>`): a read-only dashboard — portfolio, tokens with spam filter, recent transactions in plain English — with one-click Wrap / Watch / Save contact and the wallet's ENS profile (avatar, bio, X, GitHub, website), no connection needed
+- **Savings Lock** (Lock tab): deploy your own time-locked piggy bank contract (`contracts/SavingsLock.sol`), lock ETH until a date (max 5 years), let anyone top it up, and withdraw only after the unlock — with countdown, progress and a real-money acknowledgement off Sepolia
 - **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum and Base; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
 - **Wallet health score** (Guard tab): a 0–100 score and A–F grade from risky approvals, scam tokens and an **address-poisoning detector** that scans token-transfer history for zero-value or dust transfers from look-alikes of addresses you really use (or your own), showing each fake next to the real one with the differences highlighted
 - **Approval Guard**: finds every token allowance and NFT operator approval the wallet ever granted (via explorer logs), checks which are still active on-chain, flags unlimited amounts, wallet (non-contract) spenders and unverified contracts, and revokes with one click — or, on wallets that support EIP-5792 batching (smart wallets / EIP-7702), revokes every risky approval with a single signature
@@ -35,6 +36,10 @@ Tech:
 
 Every push to `main` deploys to GitHub Pages:
 https://ramadan904.github.io/lovable-web3-app/
+
+## Smart contract
+
+`contracts/` holds the Savings Lock source, a pinned compile script and a 17-check test suite (including time travel past the unlock). See `contracts/README.md`; the app imports the compiled artifact, so the deployed bytecode is reproducible from the source.
 
 ## Run locally
 
@@ -69,6 +74,7 @@ src/
   lib/approvals.ts                Approval Guard scanner and risk rules
   lib/poisoning.ts                address-poisoning detector + health score
   lib/useHoldings.ts              cached token-holdings query
+  lib/savingsLock.ts              Savings Lock ABI, bytecode and local vault list
   lib/watchlist.ts                Whale Watch list (browser storage)
   lib/proof.ts                    proof-of-ownership message and link format
   lib/explain.ts                  transaction → plain-English rules
@@ -82,6 +88,7 @@ src/
   components/dashboard/           Portfolio, TokensCard, NftsCard, SendCard, ShieldPanel, ReceiveCard, RequestCard, ContactsCard, ActivityCard
   components/approvals/           Approval Guard page
   components/watch/               Whale Watch page
+  components/lock/                Savings Lock page
   components/view/                read-only view of any wallet
   components/proof/               create / verify ownership proofs
   components/explain/             transaction explainer page

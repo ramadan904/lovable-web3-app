@@ -6,6 +6,7 @@ import {
   Fingerprint,
   Fuel,
   Link2,
+  PiggyBank,
   ScrollText,
   ShieldCheck,
   ShieldHalf,
@@ -54,6 +55,12 @@ const FEATURES: Feature[] = [
     tint: 'from-sky-500/20 to-cyan-500/5 text-sky-600',
     to: { view: 'watch' },
     cta: 'Start watching',
+  },
+  {
+    icon: PiggyBank,
+    title: 'Savings Lock',
+    body: 'A time-locked piggy bank: deploy your own contract, lock ETH until a date — nobody can touch it before then.',
+    tint: 'from-pink-500/20 to-rose-500/5 text-pink-600',
   },
   {
     icon: Command,
@@ -112,8 +119,8 @@ export function Landing() {
             </span>
           </h1>
           <p className="text-muted-foreground mx-auto mt-3 max-w-xl">
-            Ten tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale alerts,
-            and a Wrapped story for any address.
+            A dozen tools most wallets don’t have — scam protection before you sign, approval clean-up, live whale
+            alerts, and a Wrapped story for any address.
           </p>
         </div>
         <div id="connect" className="w-full scroll-mt-24">

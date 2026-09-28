@@ -31,6 +31,7 @@ const GasView = lazy(() => import('@/components/gas/GasView').then((m) => ({ def
 const PayView = lazy(() => import('@/components/pay/PayView').then((m) => ({ default: m.PayView })))
 const ProofView = lazy(() => import('@/components/proof/ProofView').then((m) => ({ default: m.ProofView })))
 const WatchView = lazy(() => import('@/components/watch/WatchView').then((m) => ({ default: m.WatchView })))
+const LockView = lazy(() => import('@/components/lock/LockView').then((m) => ({ default: m.LockView })))
 const ViewWallet = lazy(() => import('@/components/view/ViewWallet').then((m) => ({ default: m.ViewWallet })))
 const WrappedView = lazy(() => import('@/components/wrapped/WrappedView').then((m) => ({ default: m.WrappedView })))
 
@@ -39,6 +40,7 @@ const TABS: { view: Route['view']; label: string }[] = [
   { view: 'wrapped', label: 'Wrapped' },
   { view: 'watch', label: 'Watch' },
   { view: 'approvals', label: 'Guard' },
+  { view: 'lock', label: 'Lock' },
   { view: 'gas', label: 'Gas' },
 ]
 
@@ -85,12 +87,12 @@ function App() {
     <div className="flex min-h-svh flex-col">
       <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <button className="flex items-center gap-2 font-semibold" onClick={() => navigate({ view: 'dashboard' })}>
               <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-6" />
-              <span className="hidden sm:inline">Lovable Web3</span>
+              <span className="hidden whitespace-nowrap xl:inline">Lovable Web3</span>
             </button>
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-1 lg:flex">
               {TABS.map((t) => (
                 <button
                   key={t.view}
@@ -112,7 +114,7 @@ function App() {
             <ConnectButton />
           </div>
         </div>
-        <nav className="flex border-t md:hidden">
+        <nav className="flex border-t lg:hidden">
           {TABS.map((t) => (
             <button
               key={t.view}
@@ -134,6 +136,8 @@ function App() {
           <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
             {route.view === 'gas' ? (
               <GasView />
+            ) : route.view === 'lock' ? (
+              <LockView />
             ) : route.view === 'view' ? (
               <ViewWallet key={route.target ?? ''} target={route.target} />
             ) : route.view === 'tx' ? (

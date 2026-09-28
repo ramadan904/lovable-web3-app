@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 
 // Hash-based routes (#/gas, #/wrapped/vitalik.eth) work on GitHub Pages without server rewrites.
 export type Route = {
-  view: 'dashboard' | 'gas' | 'wrapped' | 'pay' | 'approvals' | 'watch' | 'prove' | 'verify' | 'tx' | 'view'
+  view: 'dashboard' | 'gas' | 'wrapped' | 'pay' | 'approvals' | 'watch' | 'prove' | 'verify' | 'tx' | 'view' | 'lock'
   target?: string
   params?: URLSearchParams
 }
@@ -15,6 +15,7 @@ function parse(hash: string): Route {
   if (view === 'watch') return { view: 'watch' }
   if (view === 'pay' || view === 'verify') return { view, params: new URLSearchParams(query) }
   if (view === 'prove') return { view: 'prove' }
+  if (view === 'lock') return { view: 'lock' }
   if (view === 'tx') return { view: 'tx', target: rest[0] || undefined }
   if (view === 'view') return { view: 'view', target: rest.join('/') ? decodeURIComponent(rest.join('/')) : undefined }
   if (view === 'wrapped')

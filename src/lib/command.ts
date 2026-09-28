@@ -9,7 +9,7 @@ export type Command =
   | { kind: 'receive' }
   | {
       kind: 'goto'
-      view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx' | 'view'
+      view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx' | 'view' | 'lock'
       target?: string
     }
 
@@ -90,6 +90,7 @@ export function parseCommand(input: string): Command | null {
 
   if (/^(?:prove(?: it'?s me| ownership| it)?|proof|sign(?: a)? proof|verify me)$/i.test(text))
     return { kind: 'goto', view: 'prove' }
+  if (/^(?:lock|savings?(?: lock)?|piggy ?bank|save|vault|hodl)$/i.test(text)) return { kind: 'goto', view: 'lock' }
   if (/^(?:watch|whales?|whale watch|watchlist|alerts?)$/i.test(text)) return { kind: 'goto', view: 'watch' }
 
   m = text.match(/^(?:view|look up|lookup|check|open|show)\s+(0x[a-fA-F0-9]{40}|@?[\w-]+(?:\.[\w-]+)*)$/i)
@@ -116,6 +117,7 @@ export const EXAMPLES = [
   'gas',
   'revoke',
   'watch',
+  'piggy bank',
   'prove',
   'explain',
   'dark mode',
