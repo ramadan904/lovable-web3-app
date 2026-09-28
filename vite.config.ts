@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // GitHub Pages serves the site from /<repo>/; Lovable and local dev use /.
+  base: process.env.GITHUB_PAGES ? '/lovable-web3-app/' : '/',
   server: {
     host: '::',
     port: 8080,

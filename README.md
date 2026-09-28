@@ -6,6 +6,11 @@ A starter for building a Web3 front end with [Lovable](https://lovable.dev) or l
 - **Tailwind CSS v4 + shadcn/ui**: `components.json` is set up, so `npx shadcn@latest add <component>` works
 - **wagmi + viem + TanStack Query**: wallet connect, balance and network switching on Ethereum, Base and Sepolia
 
+## Live site
+
+Every push to `main` deploys to GitHub Pages:
+https://ramadan904.github.io/lovable-web3-app/
+
 ## Run locally
 
 ```sh
