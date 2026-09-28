@@ -1,0 +1,112 @@
+import { zeroAddress, type Address } from 'viem'
+import { useBalance, useBytecode, useTransactionCount } from 'wagmi'
+
+import { USDC } from '@/lib/tokens'
+import type { ChainId } from '@/lib/wagmi'
+
+export type Finding = {
+  level: 'danger' | 'warning' | 'info' | 'ok'
+  title: string
+  detail?: string
+}
+
+const TOKEN_CONTRACTS = new Set(Object.values(USDC).map((a) => a.toLowerCase()))
+
+/**
+ * Address poisoning: scammers send dust from an address whose first and last
+ * characters match one you use, hoping you copy it from your history.
+ */
+export function findLookalike(to: Address, known: Address[]) {
+  const t = to.toLowerCase()
+  return known.find((k) => {
+    const a = k.toLowerCase()
+    return a !== t && a.slice(2, 6) === t.slice(2, 6) && a.slice(-4) === t.slice(-4)
+  })
+}
+
+type Params = {
+  to?: Address
+  chainId?: ChainId
+  chainName?: string
+  token: string
+  self?: Address
+  known: Address[]
+}
+
+/** Safety checks on a transfer recipient, run before the user signs. */
+export function useRecipientShield({ to, chainId, chainName, token, self, known }: Params) {
+  const enabled = !!to && !!chainId
+  const query = { enabled }
+  const code = useBytecode({ address: to, chainId, query })
+  const nonce = useTransactionCount({ address: to, chainId, query })
+  const balance = useBalance({ address: to, chainId, query })
+
+  if (!to || !chainId) return { findings: [] as Finding[], loading: false }
+
+  const findings: Finding[] = []
+  const lower = to.toLowerCase()
+  const net = chainName ?? 'this network'
+
+  if (to === zeroAddress) {
+    findings.push({
+      level: 'danger',
+      title: 'This is the zero address',
+      detail: 'Anything sent here is burned and can never be recovered.',
+    })
+  }
+  if (TOKEN_CONTRACTS.has(lower)) {
+    findings.push({
+      level: 'danger',
+      title: 'This is the USDC token contract itself',
+      detail: 'Tokens sent to a token contract are almost always lost forever.',
+    })
+  }
+  const lookalike = findLookalike(to, self ? [self, ...known] : known)
+  if (lookalike) {
+    findings.push({
+      level: 'danger',
+      title: 'Look-alike address — possible address-poisoning scam',
+      detail: `It starts and ends like ${lookalike.slice(0, 6)}…${lookalike.slice(-4)}${
+        lookalike.toLowerCase() === self?.toLowerCase() ? ' (your own wallet)' : ', which you sent to before'
+      }, but the middle is different. Copy the address from a trusted source, not your history.`,
+    })
+  }
+  if (self && lower === self.toLowerCase()) {
+    findings.push({ level: 'info', title: 'You are sending to yourself' })
+  }
+
+  const bytecode = code.data
+  if (bytecode && bytecode !== '0x') {
+    if (bytecode.toLowerCase().startsWith('0xef0100')) {
+      findings.push({
+        level: 'info',
+        title: 'Smart account (EIP-7702)',
+        detail: 'A regular wallet upgraded with smart-account features.',
+      })
+    } else if (!TOKEN_CONTRACTS.has(lower)) {
+      findings.push({
+        level: 'warning',
+        title: 'This address is a smart contract',
+        detail: `Only continue if you know it can receive ${token} on ${net} — e.g. a multisig or an exchange deposit address.`,
+      })
+    }
+  } else if (code.isSuccess && nonce.data === 0 && balance.data?.value === 0n) {
+    findings.push({
+      level: 'warning',
+      title: `Brand-new address on ${net}`,
+      detail: 'It has never sent a transaction and holds nothing here. Double-check every character.',
+    })
+  } else if (nonce.data !== undefined && nonce.data > 0) {
+    findings.push({
+      level: 'ok',
+      title: `Active wallet on ${net}`,
+      detail: `${nonce.data.toLocaleString()} transactions sent from it.`,
+    })
+  }
+
+  if (!lookalike && known.some((k) => k.toLowerCase() === lower)) {
+    findings.push({ level: 'ok', title: "You've sent to this address before" })
+  }
+
+  return { findings, loading: code.isLoading || nonce.isLoading }
+}

@@ -3,7 +3,8 @@
 A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
 
 - see ETH and USDC balances on Ethereum, Base and Sepolia at once, with USD values and a total
-- send ETH or USDC on any of those networks (use Sepolia to test for free)
+- send ETH or USDC to an address or ENS name on any of those networks (use Sepolia to test for free)
+- **Scam Shield** checks every recipient before you sign: look-alike (address-poisoning) addresses, token contracts, the zero address, smart contracts and brand-new addresses, plus the network fee in USD
 - track transfers sent from the app, with live confirmation status
 - receive funds by QR code or copied address
 - get warned (and switch in one click) when the wallet is on an unsupported network
@@ -38,6 +39,8 @@ src/
   lib/tokens.ts                   USDC contract addresses per chain
   lib/balances.ts                 ETH + USDC balances on every chain in one batch
   lib/prices.ts                   USD prices from CoinGecko
+  lib/shield.ts                   Scam Shield recipient checks
+  lib/sendDraft.ts                pre-fill the Send form from anywhere
   lib/wallet.ts                   wallet-picker helpers
   lib/activity.ts                 sent-transaction history (browser storage)
   lib/theme.ts                    light / dark mode
