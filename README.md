@@ -38,8 +38,10 @@ Tech:
 
 ## Live site
 
-Every push to `main` deploys to GitHub Pages:
-https://ramadan904.github.io/lovable-web3-app/
+Every push to `main` deploys to both:
+
+- **Vercel:** https://walletbodyguard.vercel.app
+- **GitHub Pages:** https://ramadan904.github.io/lovable-web3-app/
 
 ## Smart contract
 
