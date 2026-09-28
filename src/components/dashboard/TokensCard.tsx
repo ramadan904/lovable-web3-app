@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { toHoldings, type BsTokenBalance, type Holding } from '@/lib/holdings'
-import { formatUsd } from '@/lib/prices'
+import { formatFiat } from '@/lib/prices'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 
 function useHoldings(address: Address, chainId: number) {
@@ -58,7 +58,7 @@ function Row({ h, explorer }: { h: Holding; explorer?: string }) {
       </div>
       <div className="text-right tabular-nums">
         <p className="text-sm">{h.spam ? '—' : formatAmount(h.amount)}</p>
-        {h.usd !== undefined && <p className="text-muted-foreground text-xs">{formatUsd(h.usd)}</p>}
+        {h.usd !== undefined && <p className="text-muted-foreground text-xs">{formatFiat(h.usd)}</p>}
       </div>
     </li>
   )
@@ -84,7 +84,7 @@ export function TokensCard({ address }: { address: Address }) {
           <CardTitle>Tokens</CardTitle>
           <CardDescription>
             Everything this wallet holds on {chain?.name}
-            {real.some((h) => h.usd !== undefined) && !chain?.testnet ? ` · ${formatUsd(total)}` : ''}
+            {real.some((h) => h.usd !== undefined) && !chain?.testnet ? ` · ${formatFiat(total)}` : ''}
           </CardDescription>
         </div>
         <div className="flex flex-wrap gap-2">

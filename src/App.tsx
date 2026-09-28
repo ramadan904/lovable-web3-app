@@ -2,6 +2,7 @@ import { useConnection } from 'wagmi'
 import { Download } from 'lucide-react'
 
 import { CommandBar } from '@/components/CommandBar'
+import { CurrencyPicker } from '@/components/CurrencyPicker'
 import { ConnectButton } from '@/components/ConnectButton'
 import { Landing } from '@/components/Landing'
 import { NetworkBanner } from '@/components/NetworkBanner'
@@ -21,6 +22,7 @@ import { ProofView } from '@/components/proof/ProofView'
 import { WatchView } from '@/components/watch/WatchView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
 import { promptInstall, useCanInstall } from '@/lib/install'
+import { useCurrency, usePrices } from '@/lib/prices'
 import { navigate, useRoute, type Route } from '@/lib/route'
 import { cn } from '@/lib/utils'
 
@@ -54,6 +56,9 @@ function Dashboard() {
 function App() {
   const route = useRoute()
   const canInstall = useCanInstall()
+  // Subscribing here re-renders the whole tree when the currency or FX rates change.
+  useCurrency()
+  usePrices()
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -81,6 +86,7 @@ function App() {
           </div>
           <div className="flex items-center gap-1">
             <CommandBar />
+            <CurrencyPicker />
             <ThemeToggle />
             <ConnectButton />
           </div>

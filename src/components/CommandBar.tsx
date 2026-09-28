@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { EXAMPLES, parseCommand, type Command } from '@/lib/command'
 import { navigate } from '@/lib/route'
 import { fillSendDraft } from '@/lib/sendDraft'
+import { setCurrency } from '@/lib/prices'
 import { setTheme } from '@/lib/theme'
 
 function describe(cmd: Command, chainName: (key?: string) => string | undefined) {
@@ -17,6 +18,8 @@ function describe(cmd: Command, chainName: (key?: string) => string | undefined)
       return `Switch network to ${chainName(cmd.chain)}`
     case 'theme':
       return `Turn on ${cmd.theme} mode`
+    case 'currency':
+      return `Show values in ${cmd.currency === 'NGN' ? '₦ Naira' : cmd.currency}`
     case 'copy':
       return 'Copy your wallet address'
     case 'receive':
@@ -99,6 +102,9 @@ export function CommandBar() {
         break
       case 'theme':
         setTheme(c.theme)
+        break
+      case 'currency':
+        setCurrency(c.currency)
         break
       case 'copy':
         try {

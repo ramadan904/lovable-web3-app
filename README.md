@@ -10,6 +10,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **contacts**: save addresses by nickname, pick them in Send or type `send 5 usdc to mum`; Scam Shield confirms saved contacts and flags look-alikes of them
 - receive funds by QR code or copied address
 - get warned (and switch in one click) when the wallet is on an unsupported network
+- show every value in **USD, ₦ NGN, EUR or GBP** (header picker or `show in naira`)
 - switch between light and dark mode
 - **install it like an app** on phone or desktop (web app manifest, maskable icons, install button where the browser supports it)
 - **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing

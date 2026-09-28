@@ -4,6 +4,7 @@ export type Command =
   | { kind: 'send'; amount: string; token: 'ETH' | 'USDC'; to: string; chain?: string }
   | { kind: 'switch'; chain: string }
   | { kind: 'theme'; theme: 'light' | 'dark' }
+  | { kind: 'currency'; currency: 'USD' | 'NGN' | 'EUR' | 'GBP' }
   | { kind: 'copy' }
   | { kind: 'receive' }
   | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove' | 'tx'; target?: string }
@@ -58,9 +59,21 @@ export function parseCommand(input: string): Command | null {
   m = text.match(/^(?:(dark|light)(?:\s+mode)?|(?:switch\s+to|use)\s+(dark|light)(?:\s+mode)?)$/i)
   if (m) return { kind: 'theme', theme: (m[1] ?? m[2]).toLowerCase() as 'light' | 'dark' }
 
+  m = text.match(/^(?:show (?:in|me)|use|currency|in|switch to)?\s*(usd|dollars?|ngn|naira|eur|euros?|gbp|pounds?)$/i)
+  if (m) {
+    const w = m[1].toLowerCase()
+    const currency = w.startsWith('n')
+      ? 'NGN'
+      : w.startsWith('e')
+        ? 'EUR'
+        : w.startsWith('g') || w.startsWith('p')
+          ? 'GBP'
+          : 'USD'
+    return { kind: 'currency', currency }
+  }
+
   if (/^(?:copy(?:\s+my)?\s+address|copy)$/i.test(text)) return { kind: 'copy' }
-  if (/^(?:receive|my address|show (?:my )?address|qr(?: code)?|deposit)$/i.test(text))
-    return { kind: 'receive' }
+  if (/^(?:receive|my address|show (?:my )?address|qr(?: code)?|deposit)$/i.test(text)) return { kind: 'receive' }
   if (/^(?:gas|fees?|gas (?:price|tracker)|cheapest (?:chain|network))$/i.test(text))
     return { kind: 'goto', view: 'gas' }
   if (/^(?:home|dashboard|portfolio|balances?)$/i.test(text)) return { kind: 'goto', view: 'dashboard' }
@@ -98,5 +111,6 @@ export const EXAMPLES = [
   'prove',
   'explain',
   'dark mode',
+  'show in naira',
   'copy address',
 ]

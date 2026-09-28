@@ -5,7 +5,7 @@ import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toEth, toUsdc, useBalances } from '@/lib/balances'
-import { formatUsd, usePrices } from '@/lib/prices'
+import { formatFiat, usePrices } from '@/lib/prices'
 import { formatAmount } from '@/lib/utils'
 
 function Cell({ amount, usd, loading }: { amount?: number; usd?: number; loading: boolean }) {
@@ -14,7 +14,7 @@ function Cell({ amount, usd, loading }: { amount?: number; usd?: number; loading
     <div className="flex flex-col items-end">
       <span>{formatAmount(amount)}</span>
       {usd !== undefined && amount > 0 && (
-        <span className="text-muted-foreground text-xs">{formatUsd(usd)}</span>
+        <span className="text-muted-foreground text-xs">{formatFiat(usd)}</span>
       )}
     </div>
   )
@@ -42,11 +42,11 @@ export function Portfolio({ address }: { address: Address }) {
         <div className="grid gap-1.5">
           <CardDescription>Total value (mainnets)</CardDescription>
           <CardTitle className="text-3xl tabular-nums">
-            {total !== undefined && anyLoaded ? formatUsd(total) : isLoading || prices.isLoading ? '…' : '—'}
+            {total !== undefined && anyLoaded ? formatFiat(total) : isLoading || prices.isLoading ? '…' : '—'}
           </CardTitle>
           {p && (
             <p className="text-muted-foreground text-xs">
-              1 ETH = {formatUsd(p.eth)} · prices from CoinGecko
+              1 ETH = {formatFiat(p.eth)} · prices from CoinGecko
             </p>
           )}
         </div>

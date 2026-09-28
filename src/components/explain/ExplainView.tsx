@@ -18,7 +18,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { explainTx, type BsTxDetail } from '@/lib/explain'
-import { formatUsd, usePrices } from '@/lib/prices'
+import { formatFiat, usePrices } from '@/lib/prices'
 import { navigate } from '@/lib/route'
 import { cn, formatAmount } from '@/lib/utils'
 
@@ -55,7 +55,7 @@ export function ExplainView({ hash }: { hash?: string }) {
   const found = lookup.data
   const chain = found ? chains.find((c) => c.id === found.chainId) : undefined
   const e = found ? explainTx(found.tx) : undefined
-  const usd = (eth: number) => (prices.data && !chain?.testnet ? ` (${formatUsd(eth * prices.data.eth)})` : '')
+  const usd = (eth: number) => (prices.data && !chain?.testnet ? ` (${formatFiat(eth * prices.data.eth)})` : '')
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault()

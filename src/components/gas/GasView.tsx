@@ -7,7 +7,7 @@ import { BellRing, Fuel, PartyPopper, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { formatUsd, usePrices } from '@/lib/prices'
+import { formatFiat, usePrices } from '@/lib/prices'
 import { cn, formatAmount } from '@/lib/utils'
 import type { ChainId } from '@/lib/wagmi'
 
@@ -40,7 +40,7 @@ function ChainGasCard({
   const cost = (gas: bigint) => {
     if (perGas === undefined) return '—'
     const eth = Number(formatUnits(gas * perGas, 18))
-    return prices.data && !testnet ? formatUsd(eth * prices.data.eth) : `${formatAmount(eth, 6)} ETH`
+    return prices.data && !testnet ? formatFiat(eth * prices.data.eth) : `${formatAmount(eth, 6)} ETH`
   }
 
   return (

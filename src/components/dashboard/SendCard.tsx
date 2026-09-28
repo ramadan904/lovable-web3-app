@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { recordActivity, useActivity, type ActivityItem } from '@/lib/activity'
 import { useBalances } from '@/lib/balances'
-import { formatUsd, usePrices } from '@/lib/prices'
+import { formatFiat, usePrices } from '@/lib/prices'
 import { findContact, useContacts } from '@/lib/contacts'
 import { useSendDraft } from '@/lib/sendDraft'
 import { useRecipientShield } from '@/lib/shield'
@@ -143,7 +143,7 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
   const feeEth = feeWei !== undefined ? Number(formatUnits(feeWei, 18)) : undefined
   const feeText =
     feeEth !== undefined
-      ? `${formatAmount(feeEth, 6)} ETH${prices.data && !chain?.testnet ? ` (${formatUsd(feeEth * prices.data.eth)})` : ''}`
+      ? `${formatAmount(feeEth, 6)} ETH${prices.data && !chain?.testnet ? ` (${formatFiat(feeEth * prices.data.eth)})` : ''}`
       : undefined
   const remainingText =
     available !== undefined && units !== null && units <= available
