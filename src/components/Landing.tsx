@@ -43,8 +43,8 @@ const FEATURES: Feature[] = [
   },
   {
     icon: ShieldHalf,
-    title: 'Approval Guard',
-    body: 'Finds every app allowed to spend your tokens, flags drainer patterns and revokes in one click.',
+    title: 'Wallet Guard',
+    body: 'A health score for your wallet: catches address-poisoning scams and risky approvals, and revokes in one click.',
     tint: 'from-amber-500/20 to-orange-500/5 text-amber-600',
   },
   {

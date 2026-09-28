@@ -36,8 +36,8 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-xs">
         <Layers className="size-4 shrink-0" />
-        Your wallet can’t batch transactions, so revoke these one by one. Smart wallets (like Coinbase Smart Wallet)
-        can revoke them all with a single confirmation.
+        Your wallet can’t batch transactions, so revoke these one by one. Smart wallets (like Coinbase Smart Wallet) can
+        revoke them all with a single confirmation.
       </p>
     )
 

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import type { Address } from 'viem'
 import { useChains } from 'wagmi'
 import { ChevronDown, EyeOff, ShieldAlert } from 'lucide-react'
@@ -7,25 +6,10 @@ import { ChevronDown, EyeOff, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKSCOUT } from '@/lib/blockscout'
-import { toHoldings, type BsTokenBalance, type Holding } from '@/lib/holdings'
+import { type Holding } from '@/lib/holdings'
+import { useHoldings } from '@/lib/useHoldings'
 import { formatFiat } from '@/lib/prices'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
-
-function useHoldings(address: Address, chainId: number) {
-  return useQuery({
-    queryKey: ['holdings', chainId, address.toLowerCase()],
-    enabled: !!BLOCKSCOUT[chainId],
-    staleTime: 60_000,
-    retry: 1,
-    queryFn: async () => {
-      const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/token-balances`)
-      if (res.status === 404) return []
-      if (!res.ok) throw new Error(`Explorer error ${res.status}`)
-      const body = (await res.json()) as BsTokenBalance[] | { items?: BsTokenBalance[] }
-      return toHoldings(chainId, Array.isArray(body) ? body : (body.items ?? []))
-    },
-  })
-}
 
 function TokenIcon({ h }: { h: Holding }) {
   const [broken, setBroken] = useState(false)

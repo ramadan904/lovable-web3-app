@@ -13,8 +13,10 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 
+import { HealthCard } from '@/components/approvals/HealthCard'
 import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { nftAbi, useApprovals, type Approval } from '@/lib/approvals'
@@ -149,11 +151,11 @@ export function ApprovalsView() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <ShieldHalf className="size-6" /> Approval Guard
+          <ShieldHalf className="size-6" /> Wallet Guard
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Every app you’ve allowed to spend your tokens or move your NFTs — and a one-click revoke. Forgotten unlimited
-          approvals are how most wallets get drained.
+          A security check-up: health score, address-poisoning detector, and every app allowed to spend your tokens —
+          with one-click revoke.
         </p>
       </div>
 
@@ -188,6 +190,9 @@ export function ApprovalsView() {
             </Button>
           </div>
 
+          <ErrorBoundary label="Wallet health">
+            <HealthCard address={address} chainId={chainId} chainName={chain?.name} approvals={scan.data?.approvals} />
+          </ErrorBoundary>
           <Card>
             <CardContent>
               {scan.isLoading ? (
