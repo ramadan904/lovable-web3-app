@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { Address } from 'viem'
 import { QRCodeSVG } from 'qrcode.react'
-import { Check, Copy } from 'lucide-react'
+import { Check, Copy, Fingerprint } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { navigate } from '@/lib/route'
 
 export function ReceiveCard({ address }: { address: Address }) {
   const [copied, setCopied] = useState(false)
@@ -38,6 +39,9 @@ export function ReceiveCard({ address }: { address: Address }) {
         <Button variant="outline" className="w-full" onClick={copy}>
           {copied ? <Check /> : <Copy />}
           {copied ? 'Copied' : 'Copy address'}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => navigate({ view: 'prove' })}>
+          <Fingerprint /> Prove this wallet is yours
         </Button>
         <p className="text-muted-foreground text-xs">
           Need test ETH? Search for a “Sepolia faucet”, paste this address, then switch to Sepolia.

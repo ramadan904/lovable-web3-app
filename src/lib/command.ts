@@ -6,7 +6,7 @@ export type Command =
   | { kind: 'theme'; theme: 'light' | 'dark' }
   | { kind: 'copy' }
   | { kind: 'receive' }
-  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch'; target?: string }
+  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals' | 'watch' | 'prove'; target?: string }
 
 export const CHAIN_ALIASES: Record<string, string> = {
   ethereum: 'ethereum',
@@ -66,6 +66,8 @@ export function parseCommand(input: string): Command | null {
   if (/^(?:revoke|approvals?|allowances?|guard|approval guard|check approvals)$/i.test(text))
     return { kind: 'goto', view: 'approvals' }
 
+  if (/^(?:prove(?: it'?s me| ownership| it)?|proof|sign(?: a)? proof|verify me)$/i.test(text))
+    return { kind: 'goto', view: 'prove' }
   if (/^(?:watch|whales?|whale watch|watchlist|alerts?)$/i.test(text)) return { kind: 'goto', view: 'watch' }
 
   m = text.match(/^wrap(?:ped)?(?:\s+(?:for\s+)?(\S+))?$/i)
@@ -88,6 +90,7 @@ export const EXAMPLES = [
   'gas',
   'revoke',
   'watch',
+  'prove',
   'dark mode',
   'copy address',
 ]

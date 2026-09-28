@@ -14,6 +14,7 @@ import { SendCard } from '@/components/dashboard/SendCard'
 import { ApprovalsView } from '@/components/approvals/ApprovalsView'
 import { GasView } from '@/components/gas/GasView'
 import { PayView } from '@/components/pay/PayView'
+import { ProofView } from '@/components/proof/ProofView'
 import { WatchView } from '@/components/watch/WatchView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
 import { navigate, useRoute, type Route } from '@/lib/route'
@@ -116,6 +117,8 @@ function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         {route.view === 'gas' ? (
           <GasView />
+        ) : route.view === 'prove' || route.view === 'verify' ? (
+          <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
         ) : route.view === 'watch' ? (
           <WatchView />
         ) : route.view === 'approvals' ? (
