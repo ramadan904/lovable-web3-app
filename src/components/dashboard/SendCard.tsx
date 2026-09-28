@@ -75,13 +75,13 @@ export function SendCard() {
 
   // Pre-fill from the command bar.
   const draft = useSendDraft()
-  useEffect(() => {
-    if (draft.seq === 0) return
+  const [appliedSeq, setAppliedSeq] = useState(draft.seq)
+  if (draft.seq !== appliedSeq) {
+    setAppliedSeq(draft.seq)
     if (draft.token) setToken(draft.token)
     if (draft.to !== undefined) setToInput(draft.to)
     if (draft.amount !== undefined) setAmount(draft.amount)
-    if (draft.chainId && draft.chainId !== chain?.id) switchChain.mutate({ chainId: draft.chainId })
-  }, [draft.seq])
+  }
 
   // Recipient: a 0x address or an ENS name (resolved on Ethereum mainnet).
   const ensName = !isAddress(toInput) && toInput.includes('.') ? safeNormalize(toInput) : undefined
@@ -106,7 +106,13 @@ export function SendCard() {
     known,
   })
   const danger = shield.findings.some((f) => f.level === 'danger')
-  useEffect(() => setAcknowledged(false), [to, chain?.id])
+  // A new recipient or network needs a fresh acknowledgement.
+  const ackKey = `${to}:${chain?.id}`
+  const [ackFor, setAckFor] = useState(ackKey)
+  if (ackFor !== ackKey) {
+    setAckFor(ackKey)
+    setAcknowledged(false)
+  }
 
   // Fee preview
   const gas = useEstimateGas({

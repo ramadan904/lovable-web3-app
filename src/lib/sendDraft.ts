@@ -1,12 +1,10 @@
 import { useSyncExternalStore } from 'react'
 
-import type { ChainId } from '@/lib/wagmi'
 
 export type SendDraft = {
   to?: string
   amount?: string
   token?: 'ETH' | 'USDC'
-  chainId?: ChainId
   /** Increments on every fill so the same draft can be applied twice. */
   seq: number
 }

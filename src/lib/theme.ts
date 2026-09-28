@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'
 
 const KEY = 'theme'
+const listeners = new Set<() => void>()
 
 function initialTheme(): Theme {
   try {
@@ -14,17 +15,27 @@ function initialTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+let theme: Theme = initialTheme()
+document.documentElement.classList.toggle('dark', theme === 'dark')
+
+export function setTheme(next: Theme) {
+  theme = next
+  document.documentElement.classList.toggle('dark', next === 'dark')
+  try {
+    localStorage.setItem(KEY, next)
+  } catch {
+    // ignore
+  }
+  listeners.forEach((l) => l())
+}
+
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(initialTheme)
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    try {
-      localStorage.setItem(KEY, theme)
-    } catch {
-      // ignore
-    }
-  }, [theme])
-
-  return { theme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) }
+  const value = useSyncExternalStore(
+    (l) => {
+      listeners.add(l)
+      return () => listeners.delete(l)
+    },
+    () => theme,
+  )
+  return { theme: value, toggle: () => setTheme(value === 'dark' ? 'light' : 'dark') }
 }

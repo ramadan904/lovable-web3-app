@@ -20,7 +20,7 @@ export function ReceiveCard({ address }: { address: Address }) {
   }
 
   return (
-    <Card>
+    <Card id="receive" className="scroll-mt-20">
       <CardHeader>
         <CardTitle>Receive</CardTitle>
         <CardDescription>

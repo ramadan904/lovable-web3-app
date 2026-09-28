@@ -9,6 +9,9 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - receive funds by QR code or copied address
 - get warned (and switch in one click) when the wallet is on an unsupported network
 - switch between light and dark mode
+- **Command bar** (Ctrl/⌘ K): type `send 5 usdc to vitalik.eth on base`, `switch to sepolia`, `gas`, `wrapped vitalik.eth`… parsed locally, always reviewed before signing
+- **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest highlighted
+- **Wallet Wrapped**: a story-style recap of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
 
 Tech:
 
@@ -41,13 +44,20 @@ src/
   lib/prices.ts                   USD prices from CoinGecko
   lib/shield.ts                   Scam Shield recipient checks
   lib/sendDraft.ts                pre-fill the Send form from anywhere
+  lib/command.ts                  plain-English command parser
+  lib/route.ts                    hash routes (#/, #/gas, #/wrapped/<who>)
+  lib/blockscout.ts               explorer API client for Wrapped
+  lib/wrapped.ts                  Wrapped stats and personality rules
   lib/wallet.ts                   wallet-picker helpers
   lib/activity.ts                 sent-transaction history (browser storage)
   lib/theme.ts                    light / dark mode
   components/ConnectButton.tsx    header connect / account control
   components/ConnectCard.tsx      connect prompt on the landing page
   components/NetworkBanner.tsx    unsupported-network warning
-  components/dashboard/           Portfolio, SendCard, ReceiveCard, ActivityCard
+  components/CommandBar.tsx       Ctrl/⌘ K command palette
+  components/dashboard/           Portfolio, SendCard, ShieldPanel, ReceiveCard, ActivityCard
+  components/gas/                 live gas tracker
+  components/wrapped/             Wallet Wrapped story + share-card renderer
   components/ui/                  shadcn/ui components
 ```
 
