@@ -10,6 +10,7 @@ import { EnsProfile } from '@/components/EnsProfile'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { TokensCard } from '@/components/dashboard/TokensCard'
 import { NftsCard } from '@/components/dashboard/NftsCard'
+import { GalaxyCard } from '@/components/galaxy/GalaxyCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -206,6 +207,7 @@ export function ViewWallet({ target }: { target?: string }) {
           <div className="grid gap-6 md:grid-cols-2">
             <Portfolio address={address} />
             <TokensCard address={address} />
+            <GalaxyCard address={address} label={label} />
             <NftsCard address={address} />
             <RecentTransactions address={address} />
           </div>

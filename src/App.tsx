@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { ContactsCard } from '@/components/dashboard/ContactsCard'
 import { HoloCard } from '@/components/dashboard/HoloCard'
+import { GalaxyCard } from '@/components/galaxy/GalaxyCard'
 import { NftsCard } from '@/components/dashboard/NftsCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
@@ -58,6 +59,9 @@ function Dashboard() {
         </ErrorBoundary>
         <ErrorBoundary label="Tokens">
           <TokensCard address={address} />
+        </ErrorBoundary>
+        <ErrorBoundary label="Wallet Galaxy">
+          <GalaxyCard address={address} />
         </ErrorBoundary>
         <ErrorBoundary label="NFTs">
           <NftsCard address={address} />

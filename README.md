@@ -2,6 +2,7 @@
 
 A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
 
+- **Wallet Galaxy**: an animated orbit map of everyone a wallet transacts with — closer and bigger means more transactions; shape + colour mark apps, wallets and tokens; hover for details, click to open, or switch to a list view
 - a **holographic wallet card** that tilts with a moving sheen and flips to your receive QR code
 - **confetti** 🎉 on confirmed sends, created locks, withdrawals, batch revokes and proofs (off with reduced motion)
 - see ETH and USDC balances on Ethereum, Base and Sepolia at once, with USD values and a total
@@ -74,6 +75,7 @@ src/
   lib/blockscout.ts               explorer API client for Wrapped
   lib/wrapped.ts                  Wrapped stats and personality rules
   lib/approvals.ts                Approval Guard scanner and risk rules
+  lib/galaxy.ts                   counterparty grouping + orbit layout
   lib/poisoning.ts                address-poisoning detector + health score
   lib/useHoldings.ts              cached token-holdings query
   lib/savingsLock.ts              Savings Lock ABI, bytecode and local vault list

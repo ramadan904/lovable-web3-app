@@ -172,3 +172,68 @@
     transition: none;
   }
 }
+
+/* ---------- Wallet Galaxy (categorical slots validated all-pairs for light/dark surfaces) ---------- */
+.viz-root {
+  --series-1: #2a78d6; /* apps & contracts */
+  --series-2: #eb6834; /* wallets */
+  --series-3: #1baf7a; /* tokens — below 3:1 on light: legend, labels and list view provide relief */
+  --viz-surface: #ffffff;
+  --viz-text: oklch(0.17 0.02 290);
+  --viz-orbit: oklch(0.55 0.08 293 / 0.18);
+  --viz-star: oklch(0.55 0.1 293);
+  --viz-space: radial-gradient(ellipse at center, oklch(0.97 0.03 293), oklch(0.995 0.003 293) 70%);
+}
+.dark .viz-root {
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --viz-surface: #14121e;
+  --viz-text: oklch(0.97 0.006 293);
+  --viz-orbit: oklch(0.8 0.08 293 / 0.14);
+  --viz-star: #ffffff;
+  --viz-space: radial-gradient(ellipse at center, oklch(0.26 0.08 293), oklch(0.16 0.03 290) 70%);
+}
+.galaxy-space {
+  background: var(--viz-space);
+}
+.galaxy-star {
+  fill: var(--viz-star);
+  opacity: 0.25;
+  animation: twinkle 4s ease-in-out infinite;
+}
+.galaxy-pulse {
+  transform-origin: 300px 300px;
+  animation: core-pulse 5s ease-in-out infinite;
+}
+.galaxy-hot {
+  filter: drop-shadow(0 0 6px currentColor);
+  transform: scale(1.25);
+  transition: transform 0.15s;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes core-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-star,
+  .galaxy-pulse {
+    animation: none;
+  }
+}
