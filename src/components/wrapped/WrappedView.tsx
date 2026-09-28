@@ -1,10 +1,11 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { formatUnits, isAddress, type Address } from 'viem'
 import { normalize } from 'viem/ens'
 import { useChains, useConnection, useEnsAddress, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { ChevronLeft, ChevronRight, Download, Share2, Sparkles } from 'lucide-react'
 
+import { CountUp } from '@/components/wrapped/CountUp'
 import { drawShareCard } from '@/components/wrapped/shareCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,7 +32,9 @@ const GRADIENTS = [
   'from-fuchsia-950 via-pink-700 to-orange-400',
 ]
 
-type Slide = { kicker: string; big: string; sub?: string }
+type Slide = { kicker: string; big: string; sub?: string; count?: boolean }
+
+const SLIDE_MS = 5000
 
 function buildSlides(s: WrappedStats, label: string, chainName: string, fees: string): Slide[] {
   const slides: Slide[] = [
@@ -39,6 +42,7 @@ function buildSlides(s: WrappedStats, label: string, chainName: string, fees: st
     {
       kicker: 'You made',
       big: `${s.totalTx.toLocaleString()} transactions`,
+      count: true,
       sub: s.tokenTransfers ? `…and moved tokens ${s.tokenTransfers.toLocaleString()} times.` : undefined,
     },
   ]
@@ -64,9 +68,14 @@ function buildSlides(s: WrappedStats, label: string, chainName: string, fees: st
     slides.push({
       kicker: 'You paid the network',
       big: fees,
+      count: true,
       sub: `in fees across your last ${s.sampleSize} transactions${s.failRate > 0 ? `, and ${Math.round(s.failRate * 100)}% of your sends failed` : ''}.`,
     })
-  slides.push({ kicker: 'Your on-chain personality', big: `${s.persona.emoji} ${s.persona.title}`, sub: s.persona.blurb })
+  slides.push({
+    kicker: 'Your on-chain personality',
+    big: `${s.persona.emoji} ${s.persona.title}`,
+    sub: s.persona.blurb,
+  })
   return slides
 }
 
@@ -77,6 +86,11 @@ export function WrappedView({ target }: { target?: string }) {
   const [chainId, setChainId] = useState<number>(chains[0].id)
   const [input, setInput] = useState(target ?? '')
   const [slide, setSlide] = useState(0)
+  const [paused, setPaused] = useState(false)
+  // A long press pauses the story; releasing it shouldn't also count as a tap.
+  const pressedAt = useRef(0)
+  const wasTap = () => Date.now() - pressedAt.current < 300
+  const [reduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
 
   // Who to wrap: the route target (address or ENS), else the connected wallet.
   const query = target ?? connected ?? ''
@@ -92,8 +106,7 @@ export function WrappedView({ target }: { target?: string }) {
 
   const stats = wrapped.data
   const feesEth = stats ? Number(formatUnits(stats.feesWei, 18)) : 0
-  const feesText =
-    prices.data && !testnet ? formatFiat(feesEth * prices.data.eth) : `${formatAmount(feesEth, 5)} ETH`
+  const feesText = prices.data && !testnet ? formatFiat(feesEth * prices.data.eth) : `${formatAmount(feesEth, 5)} ETH`
   const slides = useMemo(
     () => (stats ? buildSlides(stats, label, chainName, feesText) : []),
     [stats, label, chainName, feesText],
@@ -136,7 +149,9 @@ export function WrappedView({ target }: { target?: string }) {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={connected ? `${shortenAddress(connected)} (you) — or any address / name.eth` : 'Address or name.eth'}
+          placeholder={
+            connected ? `${shortenAddress(connected)} (you) — or any address / name.eth` : 'Address or name.eth'
+          }
           className="font-mono"
           spellCheck={false}
           autoComplete="off"
@@ -149,10 +164,15 @@ export function WrappedView({ target }: { target?: string }) {
         {chains
           .filter((c) => BLOCKSCOUT[c.id])
           .map((c) => (
-            <Button key={c.id} size="sm" variant={c.id === chainId ? 'default' : 'outline'} onClick={() => {
+            <Button
+              key={c.id}
+              size="sm"
+              variant={c.id === chainId ? 'default' : 'outline'}
+              onClick={() => {
                 setChainId(c.id)
                 setSlide(0)
-              }}>
+              }}
+            >
               {c.name}
             </Button>
           ))}
@@ -168,7 +188,9 @@ export function WrappedView({ target }: { target?: string }) {
         <p className="text-destructive p-10 text-center text-sm">Couldn’t find a wallet for “{query}”.</p>
       ) : wrapped.isLoading ? (
         <div className="flex aspect-[4/5] max-h-[560px] w-full items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-950 via-violet-700 to-fuchsia-600 text-white">
-          <p className="animate-pulse text-lg font-medium">Reading {label}’s history on {chainName}…</p>
+          <p className="animate-pulse text-lg font-medium">
+            Reading {label}’s history on {chainName}…
+          </p>
         </div>
       ) : wrapped.isError || !current ? (
         <p className="text-destructive p-10 text-center text-sm">
@@ -177,19 +199,47 @@ export function WrappedView({ target }: { target?: string }) {
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col gap-4">
           <div
+            tabIndex={0}
+            aria-roledescription="story"
+            aria-label={`Slide ${Math.min(slide, last) + 1} of ${slides.length}. Hold to pause; arrow keys to move.`}
+            onPointerDown={() => {
+              pressedAt.current = Date.now()
+              setPaused(true)
+            }}
+            onPointerUp={() => setPaused(false)}
+            onPointerLeave={() => setPaused(false)}
+            onPointerCancel={() => setPaused(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') setSlide((s) => Math.min(last, s + 1))
+              if (e.key === 'ArrowLeft') setSlide((s) => Math.max(0, s - 1))
+            }}
             className={cn(
-              'relative flex aspect-[4/5] w-full flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white shadow-2xl transition-colors duration-500',
+              'relative flex aspect-[4/5] w-full touch-none flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br p-8 text-white shadow-2xl transition-colors duration-500 outline-none select-none focus-visible:ring-4 focus-visible:ring-white/60',
               GRADIENTS[slide % GRADIENTS.length],
             )}
           >
+            {/* Story progress: the current bar fills over SLIDE_MS, then advances (holding pauses it). */}
             <div className="flex gap-1">
               {slides.map((_, i) => (
-                <span key={i} className={cn('h-1 flex-1 rounded-full', i <= slide ? 'bg-white' : 'bg-white/30')} />
+                <span key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
+                  {i < slide || (i === slide && (reduced || slide >= last)) ? (
+                    <span className="block h-full w-full bg-white" />
+                  ) : i === slide ? (
+                    <span
+                      key={slide}
+                      className="story-fill block h-full bg-white"
+                      style={{ animationDuration: `${SLIDE_MS}ms`, animationPlayState: paused ? 'paused' : 'running' }}
+                      onAnimationEnd={() => setSlide((s) => Math.min(last, s + 1))}
+                    />
+                  ) : null}
+                </span>
               ))}
             </div>
             <div key={slide} className="animate-rise flex flex-col gap-3">
               <p className="text-sm font-medium tracking-wide uppercase opacity-80">{current.kicker}</p>
-              <p className="text-4xl leading-tight font-extrabold break-words sm:text-5xl">{current.big}</p>
+              <p className="text-4xl leading-tight font-extrabold break-words sm:text-5xl">
+                {current.count ? <CountUp text={current.big} /> : current.big}
+              </p>
               {current.sub && <p className="text-lg opacity-90">{current.sub}</p>}
             </div>
             <p className="text-xs opacity-70">
@@ -198,17 +248,22 @@ export function WrappedView({ target }: { target?: string }) {
             <button
               aria-label="Previous slide"
               className="absolute inset-y-0 left-0 w-1/3"
-              onClick={() => setSlide((s) => Math.max(0, s - 1))}
+              onClick={() => wasTap() && setSlide((s) => Math.max(0, s - 1))}
             />
             <button
               aria-label="Next slide"
               className="absolute inset-y-0 right-0 w-2/3"
-              onClick={() => setSlide((s) => Math.min(last, s + 1))}
+              onClick={() => wasTap() && setSlide((s) => Math.min(last, s + 1))}
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <Button variant="outline" size="sm" onClick={() => setSlide((s) => Math.max(0, s - 1))} disabled={slide === 0}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSlide((s) => Math.max(0, s - 1))}
+              disabled={slide === 0}
+            >
               <ChevronLeft /> Back
             </Button>
             <span className="text-muted-foreground text-xs">

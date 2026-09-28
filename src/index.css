@@ -296,3 +296,16 @@
     animation: none;
   }
 }
+
+/* ---------- Wrapped story progress ---------- */
+.story-fill {
+  width: 0;
+  animation-name: story-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes story-fill {
+  to {
+    width: 100%;
+  }
+}

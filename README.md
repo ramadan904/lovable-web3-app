@@ -28,7 +28,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **Transaction explainer**: paste any tx hash (or type it in the command bar) and get a plain-English headline — swaps, sends, mints, approvals (with unlimited-approval warnings), NFT operator grants and failures with reasons — plus token movements and fees in USD; searches Ethereum, Base and Sepolia
 - **Block pulse**: a live strip of the latest Base or Ethereum blocks — each tile drops in as a block lands, filled to how full it was, with transaction counts and details on hover
 - **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest highlighted, plus a **gas alert** that notifies you when Ethereum or Base gas drops below your target, and an **ETH price alert** (above/below a price in your chosen currency)
-- **Wallet Wrapped**: a story-style recap of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
+- **Wallet Wrapped**: an auto-playing story (5 s per slide, hold to pause, tap or arrow keys to skip, numbers count up) recapping of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
 
 Tech:
 
