@@ -6,7 +6,7 @@ export type Command =
   | { kind: 'theme'; theme: 'light' | 'dark' }
   | { kind: 'copy' }
   | { kind: 'receive' }
-  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped'; target?: string }
+  | { kind: 'goto'; view: 'dashboard' | 'gas' | 'wrapped' | 'approvals'; target?: string }
 
 export const CHAIN_ALIASES: Record<string, string> = {
   ethereum: 'ethereum',
@@ -63,6 +63,8 @@ export function parseCommand(input: string): Command | null {
   if (/^(?:gas|fees?|gas (?:price|tracker)|cheapest (?:chain|network))$/i.test(text))
     return { kind: 'goto', view: 'gas' }
   if (/^(?:home|dashboard|portfolio|balances?)$/i.test(text)) return { kind: 'goto', view: 'dashboard' }
+  if (/^(?:revoke|approvals?|allowances?|guard|approval guard|check approvals)$/i.test(text))
+    return { kind: 'goto', view: 'approvals' }
 
   m = text.match(/^wrap(?:ped)?(?:\s+(?:for\s+)?(\S+))?$/i)
   if (m) return { kind: 'goto', view: 'wrapped', target: m[1] }
@@ -82,6 +84,7 @@ export const EXAMPLES = [
   'switch to base',
   'wrapped vitalik.eth',
   'gas',
+  'revoke',
   'dark mode',
   'copy address',
 ]

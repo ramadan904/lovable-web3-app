@@ -11,6 +11,7 @@ import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { RequestCard } from '@/components/dashboard/RequestCard'
 import { SendCard } from '@/components/dashboard/SendCard'
+import { ApprovalsView } from '@/components/approvals/ApprovalsView'
 import { GasView } from '@/components/gas/GasView'
 import { PayView } from '@/components/pay/PayView'
 import { WrappedView } from '@/components/wrapped/WrappedView'
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils'
 const TABS: { view: Route['view']; label: string }[] = [
   { view: 'dashboard', label: 'Wallet' },
   { view: 'wrapped', label: 'Wrapped' },
+  { view: 'approvals', label: 'Guard' },
   { view: 'gas', label: 'Gas' },
 ]
 
@@ -112,6 +114,8 @@ function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         {route.view === 'gas' ? (
           <GasView />
+        ) : route.view === 'approvals' ? (
+          <ApprovalsView />
         ) : route.view === 'pay' ? (
           <PayView key={route.params?.toString()} params={route.params} />
         ) : route.view === 'wrapped' ? (
