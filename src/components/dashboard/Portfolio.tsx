@@ -1,46 +1,65 @@
-import { erc20Abi, formatUnits, type Address } from 'viem'
-import { useBalance, useChains, useReadContracts } from 'wagmi'
+import type { Address } from 'viem'
+import { useChains } from 'wagmi'
 import { RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { USDC, USDC_DECIMALS } from '@/lib/tokens'
+import { toEth, toUsdc, useBalances } from '@/lib/balances'
+import { formatUsd, usePrices } from '@/lib/prices'
 import { formatAmount } from '@/lib/utils'
-import type { ChainId } from '@/lib/wagmi'
 
-function EthBalance({ address, chainId }: { address: Address; chainId: ChainId }) {
-  const { data, isLoading, isError } = useBalance({ address, chainId })
-  if (isLoading) return <span className="text-muted-foreground">…</span>
-  if (isError || !data) return <span className="text-muted-foreground">—</span>
-  return <>{formatAmount(Number(formatUnits(data.value, data.decimals)))}</>
+function Cell({ amount, usd, loading }: { amount?: number; usd?: number; loading: boolean }) {
+  if (amount === undefined) return <span className="text-muted-foreground">{loading ? '…' : '—'}</span>
+  return (
+    <div className="flex flex-col items-end">
+      <span>{formatAmount(amount)}</span>
+      {usd !== undefined && amount > 0 && (
+        <span className="text-muted-foreground text-xs">{formatUsd(usd)}</span>
+      )}
+    </div>
+  )
 }
 
 export function Portfolio({ address }: { address: Address }) {
   const chains = useChains()
-  const usdc = useReadContracts({
-    contracts: chains.map((chain) => ({
-      address: USDC[chain.id],
-      abi: erc20Abi,
-      functionName: 'balanceOf',
-      args: [address],
-      chainId: chain.id,
-    })),
-  })
+  const { balances, isLoading, isFetching, refetch } = useBalances(address)
+  const prices = usePrices()
+  const p = prices.data
+
+  // Testnet tokens have no market value, so they're left out of the total.
+  const total = p
+    ? balances.reduce((sum, b) => {
+        const chain = chains.find((c) => c.id === b.chainId)
+        if (chain?.testnet) return sum
+        return sum + (b.eth ? toEth(b.eth) * p.eth : 0) + (b.usdc ? toUsdc(b.usdc) * p.usdc : 0)
+      }, 0)
+    : undefined
+  const anyLoaded = balances.some((b) => b.eth !== undefined || b.usdc !== undefined)
 
   return (
     <Card className="md:col-span-2">
       <CardHeader className="flex flex-row items-start justify-between">
         <div className="grid gap-1.5">
-          <CardTitle>Portfolio</CardTitle>
-          <CardDescription>ETH and USDC held by this address on each network.</CardDescription>
+          <CardDescription>Total value (mainnets)</CardDescription>
+          <CardTitle className="text-3xl tabular-nums">
+            {total !== undefined && anyLoaded ? formatUsd(total) : isLoading || prices.isLoading ? '…' : '—'}
+          </CardTitle>
+          {p && (
+            <p className="text-muted-foreground text-xs">
+              1 ETH = {formatUsd(p.eth)} · prices from CoinGecko
+            </p>
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
           aria-label="Refresh balances"
-          onClick={() => usdc.refetch()}
+          onClick={() => {
+            refetch()
+            prices.refetch()
+          }}
         >
-          <RefreshCw className={usdc.isFetching ? 'animate-spin' : undefined} />
+          <RefreshCw className={isFetching ? 'animate-spin' : undefined} />
         </Button>
       </CardHeader>
       <CardContent>
@@ -54,16 +73,13 @@ export function Portfolio({ address }: { address: Address }) {
               </tr>
             </thead>
             <tbody>
-              {chains.map((chain, i) => {
-                const result = usdc.data?.[i]
-                const usdcValue =
-                  result?.status === 'success'
-                    ? formatAmount(Number(formatUnits(result.result as bigint, USDC_DECIMALS)), 2)
-                    : usdc.isLoading
-                      ? '…'
-                      : '—'
+              {chains.map((chain) => {
+                const b = balances.find((x) => x.chainId === chain.id)
+                const eth = b?.eth !== undefined ? toEth(b.eth) : undefined
+                const usdc = b?.usdc !== undefined ? toUsdc(b.usdc) : undefined
+                const priced = p && !chain.testnet
                 return (
-                  <tr key={chain.id} className="border-b last:border-0">
+                  <tr key={chain.id} className="border-b align-top last:border-0">
                     <td className="py-3">
                       <span className="font-medium">{chain.name}</span>
                       {chain.testnet && (
@@ -73,9 +89,11 @@ export function Portfolio({ address }: { address: Address }) {
                       )}
                     </td>
                     <td className="py-3 text-right tabular-nums">
-                      <EthBalance address={address} chainId={chain.id} />
+                      <Cell amount={eth} usd={priced && eth !== undefined ? eth * p.eth : undefined} loading={isLoading} />
                     </td>
-                    <td className="py-3 text-right tabular-nums">{usdcValue}</td>
+                    <td className="py-3 text-right tabular-nums">
+                      <Cell amount={usdc} usd={priced && usdc !== undefined ? usdc * p.usdc : undefined} loading={isLoading} />
+                    </td>
                   </tr>
                 )
               })}

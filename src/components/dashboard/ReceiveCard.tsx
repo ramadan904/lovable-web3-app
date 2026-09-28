@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Address } from 'viem'
+import { QRCodeSVG } from 'qrcode.react'
 import { Check, Copy } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -23,12 +24,18 @@ export function ReceiveCard({ address }: { address: Address }) {
       <CardHeader>
         <CardTitle>Receive</CardTitle>
         <CardDescription>
-          Share this address to receive ETH or tokens on Ethereum, Base or Sepolia.
+          Scan or share this address to receive ETH or USDC on Ethereum, Base or Sepolia.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <p className="bg-muted rounded-md p-3 font-mono text-sm break-all select-all">{address}</p>
-        <Button variant="outline" onClick={copy}>
+      <CardContent className="flex flex-col items-center gap-4">
+        {/* Always dark-on-white so wallets can scan it in either theme. */}
+        <div className="rounded-lg bg-white p-3">
+          <QRCodeSVG value={address} size={160} bgColor="#ffffff" fgColor="#000000" />
+        </div>
+        <p className="bg-muted w-full rounded-md p-3 text-center font-mono text-sm break-all select-all">
+          {address}
+        </p>
+        <Button variant="outline" className="w-full" onClick={copy}>
           {copied ? <Check /> : <Copy />}
           {copied ? 'Copied' : 'Copy address'}
         </Button>

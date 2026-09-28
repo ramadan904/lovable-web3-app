@@ -1,8 +1,10 @@
-import { useState, type FormEvent } from 'react'
-import { erc20Abi, isAddress, parseUnits, type Hash } from 'viem'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { erc20Abi, formatUnits, isAddress, parseUnits, type Hash } from 'viem'
 import {
   useChains,
   useConnection,
+  useEstimateFeesPerGas,
   useSendTransaction,
   useSwitchChain,
   useWaitForTransactionReceipt,
@@ -16,8 +18,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { recordActivity, type ActivityItem } from '@/lib/activity'
+import { useBalances } from '@/lib/balances'
 import { USDC, USDC_DECIMALS } from '@/lib/tokens'
-import { cn } from '@/lib/utils'
+import { cn, formatAmount } from '@/lib/utils'
 
 type Token = ActivityItem['token']
 const TOKENS: Token[] = ['ETH', 'USDC']
@@ -49,6 +52,29 @@ export function SendCard() {
   const [amount, setAmount] = useState('')
   const [lastHash, setLastHash] = useState<Hash>()
   const receipt = useWaitForTransactionReceipt({ hash: lastHash })
+
+  const queryClient = useQueryClient()
+  const { balances } = useBalances(address)
+  const fees = useEstimateFeesPerGas({ chainId: chain?.id })
+  const current = balances.find((b) => b.chainId === chain?.id)
+  const available = token === 'ETH' ? current?.eth : current?.usdc
+
+  // Refresh balances once a transfer confirms.
+  useEffect(() => {
+    if (receipt.data?.status === 'success') queryClient.invalidateQueries()
+  }, [receipt.data?.status, queryClient])
+
+  function fillMax() {
+    if (available === undefined) return
+    let max = available
+    if (token === 'ETH') {
+      // Leave room for the network fee of a plain transfer (21,000 gas), with 20% headroom.
+      const feePerGas = fees.data?.maxFeePerGas ?? fees.data?.gasPrice
+      if (feePerGas === undefined) return
+      max -= (feePerGas * 21_000n * 12n) / 10n
+    }
+    setAmount(max > 0n ? formatUnits(max, DECIMALS[token]) : '0')
+  }
 
   const toValid = isAddress(to)
   const units = parseAmount(amount, DECIMALS[token])
@@ -153,7 +179,21 @@ export function SendCard() {
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="send-amount">Amount ({symbol})</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="send-amount">Amount ({symbol})</Label>
+              {available !== undefined && (
+                <span className="text-muted-foreground flex items-center gap-2 text-xs">
+                  Balance: {formatAmount(Number(formatUnits(available, DECIMALS[token])))}
+                  <button
+                    type="button"
+                    onClick={fillMax}
+                    className="text-foreground font-medium underline underline-offset-4"
+                  >
+                    Max
+                  </button>
+                </span>
+              )}
+            </div>
             <Input
               id="send-amount"
               inputMode="decimal"
@@ -164,6 +204,9 @@ export function SendCard() {
             />
             {amount !== '' && units === null && (
               <p className="text-destructive text-xs">Enter a positive number.</p>
+            )}
+            {units !== null && available !== undefined && units > available && (
+              <p className="text-destructive text-xs">That's more than your balance.</p>
             )}
           </div>
           <Button type="submit" disabled={!canSend}>

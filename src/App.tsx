@@ -3,6 +3,7 @@ import { Hexagon } from 'lucide-react'
 
 import { ConnectButton } from '@/components/ConnectButton'
 import { ConnectCard } from '@/components/ConnectCard'
+import { NetworkBanner } from '@/components/NetworkBanner'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ActivityCard } from '@/components/dashboard/ActivityCard'
 import { Portfolio } from '@/components/dashboard/Portfolio'
@@ -27,6 +28,7 @@ function App() {
           </div>
         </div>
       </header>
+      <NetworkBanner />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
         {connected ? (
