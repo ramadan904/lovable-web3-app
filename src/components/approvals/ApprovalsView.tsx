@@ -105,6 +105,7 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
             })}
           </ul>
         )}
+        {receipt.isError && <p className="text-destructive mt-2 text-xs">The revoke transaction failed on-chain.</p>}
         {write.error && (
           <p className="text-destructive mt-2 text-xs">
             {'shortMessage' in write.error ? String(write.error.shortMessage) : write.error.message}
@@ -127,7 +128,13 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
             onClick={revoke}
             disabled={write.isPending || (!!hash && receipt.isLoading)}
           >
-            {write.isPending ? 'Confirm in wallet…' : hash ? 'Revoking…' : 'Revoke'}
+            {write.isPending
+              ? 'Confirm in wallet…'
+              : hash && receipt.isLoading
+                ? 'Revoking…'
+                : receipt.isError
+                  ? 'Retry revoke'
+                  : 'Revoke'}
           </Button>
         )}
       </div>

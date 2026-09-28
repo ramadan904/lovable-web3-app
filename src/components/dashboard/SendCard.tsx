@@ -361,11 +361,12 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
 
         {lastHash && (
           <div className="bg-muted flex flex-col gap-1 rounded-md p-3 text-sm">
-            <span className={cn('font-medium', receipt.data?.status === 'reverted' && 'text-destructive')}>
+            {/* wagmi reports a reverted transaction as a query error, not as data */}
+            <span className={cn('font-medium', receipt.isError && 'text-destructive')}>
               {receipt.data?.status === 'success'
                 ? 'Confirmed'
-                : receipt.data?.status === 'reverted'
-                  ? 'Failed'
+                : receipt.isError
+                  ? 'Failed — the transaction reverted. Only the network fee was spent.'
                   : 'Waiting for confirmation…'}
             </span>
             {explorer && (

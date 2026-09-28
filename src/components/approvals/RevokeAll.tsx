@@ -23,6 +23,7 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
   const send = useSendCalls()
   const status = useWaitForCallsStatus({ id: send.data?.id, query: { enabled: !!send.data?.id } })
   const done = status.data?.status === 'success'
+  const failed = status.data?.status === 'failure' || status.isError
 
   useEffect(() => {
     if (!done) return
@@ -61,14 +62,23 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
           <ShieldCheck className="size-4" /> All {approvals.length} revoked in one go. Rescanning…
         </p>
       ) : (
-        <Button variant="destructive" onClick={revokeAll} disabled={send.isPending || (!!send.data && !done)}>
+        <Button
+          variant="destructive"
+          onClick={revokeAll}
+          disabled={send.isPending || (!!send.data && !done && !failed)}
+        >
           <Layers />
           {send.isPending
             ? 'Confirm in your wallet…'
-            : send.data
+            : send.data && !failed
               ? 'Revoking…'
               : `Revoke all ${approvals.length} risky approvals — one signature`}
         </Button>
+      )}
+      {failed && (
+        <p className="text-destructive text-xs">
+          The batch failed on-chain — nothing was revoked. Try again or revoke one by one.
+        </p>
       )}
       {send.error && (
         <p className="text-destructive text-xs">
