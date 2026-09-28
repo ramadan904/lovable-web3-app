@@ -11,6 +11,7 @@ import { Portfolio } from '@/components/dashboard/Portfolio'
 import { ReceiveCard } from '@/components/dashboard/ReceiveCard'
 import { RequestCard } from '@/components/dashboard/RequestCard'
 import { SendCard } from '@/components/dashboard/SendCard'
+import { TokensCard } from '@/components/dashboard/TokensCard'
 import { ApprovalsView } from '@/components/approvals/ApprovalsView'
 import { GasView } from '@/components/gas/GasView'
 import { PayView } from '@/components/pay/PayView'
@@ -34,6 +35,7 @@ function Dashboard() {
     return (
       <div className="grid gap-6 md:grid-cols-2">
         <Portfolio address={address} />
+        <TokensCard address={address} />
         <SendCard />
         <div className="flex flex-col gap-6">
           <ReceiveCard address={address} />
