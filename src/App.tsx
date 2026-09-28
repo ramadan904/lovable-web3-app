@@ -3,6 +3,7 @@ import { useConnection } from 'wagmi'
 import { Download } from 'lucide-react'
 
 import { CommandBar } from '@/components/CommandBar'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { CurrencyPicker } from '@/components/CurrencyPicker'
 import { ConnectButton } from '@/components/ConnectButton'
 import { Landing } from '@/components/Landing'
@@ -45,15 +46,25 @@ function Dashboard() {
   if (status === 'connected' && address)
     return (
       <div className="grid gap-6 md:grid-cols-2">
-        <Portfolio address={address} />
-        <TokensCard address={address} />
-        <SendCard />
+        <ErrorBoundary label="Portfolio">
+          <Portfolio address={address} />
+        </ErrorBoundary>
+        <ErrorBoundary label="Tokens">
+          <TokensCard address={address} />
+        </ErrorBoundary>
+        <ErrorBoundary label="Send">
+          <SendCard />
+        </ErrorBoundary>
         <div className="flex flex-col gap-6">
           <ReceiveCard address={address} />
           <RequestCard address={address} />
         </div>
-        <ContactsCard />
-        <ActivityCard address={address} />
+        <ErrorBoundary label="Contacts">
+          <ContactsCard />
+        </ErrorBoundary>
+        <ErrorBoundary label="Activity">
+          <ActivityCard address={address} />
+        </ErrorBoundary>
       </div>
     )
   return <Landing />
@@ -115,27 +126,29 @@ function App() {
       <NetworkBanner />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-        <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
-          {route.view === 'gas' ? (
-            <GasView />
-          ) : route.view === 'view' ? (
-            <ViewWallet key={route.target ?? ''} target={route.target} />
-          ) : route.view === 'tx' ? (
-            <ExplainView key={route.target ?? ''} hash={route.target} />
-          ) : route.view === 'prove' || route.view === 'verify' ? (
-            <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
-          ) : route.view === 'watch' ? (
-            <WatchView />
-          ) : route.view === 'approvals' ? (
-            <ApprovalsView />
-          ) : route.view === 'pay' ? (
-            <PayView key={route.params?.toString()} params={route.params} />
-          ) : route.view === 'wrapped' ? (
-            <WrappedView key={route.target ?? ''} target={route.target} />
-          ) : (
-            <Dashboard />
-          )}
-        </Suspense>
+        <ErrorBoundary key={`${route.view}:${route.target ?? ''}`} label="This page">
+          <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
+            {route.view === 'gas' ? (
+              <GasView />
+            ) : route.view === 'view' ? (
+              <ViewWallet key={route.target ?? ''} target={route.target} />
+            ) : route.view === 'tx' ? (
+              <ExplainView key={route.target ?? ''} hash={route.target} />
+            ) : route.view === 'prove' || route.view === 'verify' ? (
+              <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
+            ) : route.view === 'watch' ? (
+              <WatchView />
+            ) : route.view === 'approvals' ? (
+              <ApprovalsView />
+            ) : route.view === 'pay' ? (
+              <PayView key={route.params?.toString()} params={route.params} />
+            ) : route.view === 'wrapped' ? (
+              <WrappedView key={route.target ?? ''} target={route.target} />
+            ) : (
+              <Dashboard />
+            )}
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       <footer className="text-muted-foreground flex flex-col items-center gap-3 border-t py-6 text-center text-xs">
