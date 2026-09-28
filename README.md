@@ -1,6 +1,12 @@
 # Lovable Web3 App
 
-A starter for building a Web3 front end with [Lovable](https://lovable.dev) or locally.
+A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a browser wallet to:
+
+- see ETH and USDC balances on Ethereum, Base and Sepolia at once
+- send ETH on any of those networks (use Sepolia to test for free)
+- copy your address to receive funds
+
+Tech:
 
 - **Vite + React + TypeScript**
 - **Tailwind CSS v4 + shadcn/ui**: `components.json` is set up, so `npx shadcn@latest add <component>` works
@@ -24,10 +30,14 @@ npm run lint
 
 ```
 src/
-  lib/wagmi.ts              chains, connectors and RPC transports
-  lib/utils.ts              cn() class helper, shortenAddress()
-  components/WalletCard.tsx connect / balance / switch-network card
-  components/ui/            shadcn/ui components
+  App.tsx                         header, landing page, dashboard layout
+  lib/wagmi.ts                    chains, connectors and RPC transports
+  lib/tokens.ts                   USDC contract addresses per chain
+  lib/wallet.ts                   wallet-picker helpers
+  components/ConnectButton.tsx    header connect / account control
+  components/ConnectCard.tsx      connect prompt on the landing page
+  components/dashboard/           Portfolio, SendCard, ReceiveCard
+  components/ui/                  shadcn/ui components
 ```
 
 ## Adding chains or wallets

@@ -12,6 +12,8 @@ export const config = createConfig({
   },
 })
 
+export type ChainId = (typeof config)['chains'][number]['id']
+
 declare module 'wagmi' {
   interface Register {
     config: typeof config
