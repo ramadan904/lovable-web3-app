@@ -1,13 +1,21 @@
 import { useConnectors } from 'wagmi'
 
-// Wallets announced via EIP-6963 show up by name; keep the generic
-// injected connector only as a fallback when none are detected.
+/**
+ * Connect options, in order: browser wallets, then remote ones (WalletConnect).
+ * Wallets announced via EIP-6963 show up by name; the generic injected connector
+ * is kept only when none are detected and a provider exists (or nothing else does).
+ */
 export function useWalletOptions() {
   const connectors = useConnectors()
-  const detected = connectors.filter((c) => c.id !== 'injected')
-  return detected.length > 0 ? detected : connectors
+  const browser = connectors.filter((c) => c.type === 'injected')
+  const remote = connectors.filter((c) => c.type !== 'injected')
+  const detected = browser.filter((c) => c.id !== 'injected')
+  const hasProvider = typeof window !== 'undefined' && 'ethereum' in window
+  const local = detected.length > 0 ? detected : hasProvider || remote.length === 0 ? browser : []
+  return [...local, ...remote]
 }
 
-export function connectorLabel(connector: { id: string; name: string }) {
+export function connectorLabel(connector: { id: string; name: string; type: string }) {
+  if (connector.type === 'walletConnect') return 'WalletConnect (phone / QR)'
   return connector.id === 'injected' ? 'Connect browser wallet' : `Connect ${connector.name}`
 }

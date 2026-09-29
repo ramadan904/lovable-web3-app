@@ -1,5 +1,5 @@
 import { useConnect } from 'wagmi'
-import { Wallet } from 'lucide-react'
+import { QrCode, Wallet } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,17 +14,19 @@ export function ConnectCard() {
       <CardHeader>
         <CardTitle>Connect a wallet</CardTitle>
         <CardDescription>
-          Use a browser wallet such as MetaMask, Rabby, Brave Wallet or Coinbase Wallet.
+          Use a browser wallet such as MetaMask, Rabby, Brave Wallet or Coinbase Wallet
+          {options.some((c) => c.type === 'walletConnect') && ', or scan a QR code with a mobile wallet'}.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        {options.map((connector) => (
+        {options.map((connector, i) => (
           <Button
+            variant={i === 0 ? 'default' : 'outline'}
             key={connector.uid}
             onClick={() => connect.mutate({ connector })}
             disabled={connect.isPending}
           >
-            <Wallet />
+            {connector.type === 'walletConnect' ? <QrCode /> : <Wallet />}
             {connect.isPending ? 'Connecting…' : connectorLabel(connector)}
           </Button>
         ))}
