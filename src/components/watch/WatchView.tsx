@@ -6,6 +6,7 @@ import { getEnsAddress } from 'wagmi/actions'
 import { arbitrum, base, mainnet, optimism, polygon } from 'wagmi/chains'
 import { ArrowDownLeft, ArrowUpRight, Bell, BellRing, Eye, Plus, X, Zap } from 'lucide-react'
 
+import { ListSkeleton } from '@/components/Skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -247,7 +248,7 @@ export function WatchView() {
             {list.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center text-sm">Add a wallet to start the feed.</p>
             ) : loading && feed.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center text-sm">Loading…</p>
+              <ListSkeleton rows={3} label="Loading the feed" />
             ) : feed.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center text-sm">No transactions found yet.</p>
             ) : (

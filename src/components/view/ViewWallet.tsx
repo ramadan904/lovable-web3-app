@@ -6,6 +6,7 @@ import { useChains, useEnsAddress, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { ArrowDownLeft, ArrowUpRight, BookUser, Eye, ScanEye, Sparkles } from 'lucide-react'
 
+import { ListSkeleton } from '@/components/Skeletons'
 import { EnsProfile } from '@/components/EnsProfile'
 import { Portfolio } from '@/components/dashboard/Portfolio'
 import { TokensCard } from '@/components/dashboard/TokensCard'
@@ -74,7 +75,7 @@ function RecentTransactions({ address }: { address: Address }) {
       <CardContent>
         {txs.isError && txs.data && <StaleNote updatedAt={txs.dataUpdatedAt} onRetry={() => txs.refetch()} />}
         {txs.isLoading ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">Loading…</p>
+          <ListSkeleton rows={4} label="Loading transactions" />
         ) : txs.isError && !txs.data ? (
           <LoadError what="transactions" onRetry={() => txs.refetch()} retrying={txs.isFetching} />
         ) : !txs.data?.length ? (

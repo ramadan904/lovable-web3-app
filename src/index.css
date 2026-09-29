@@ -104,6 +104,28 @@
   }
 }
 
+/* Pages settle in rather than snapping: a short fade with a small rise. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-page {
+  animation: page-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page {
+    animation: none;
+  }
+}
+
 /* Loading placeholders shaped like the content they stand in for. */
 @keyframes shimmer {
   from {
@@ -184,6 +206,8 @@
     display: none;
   }
   @media (width >= 40rem) {
+    /* Wrapping rows need their real width back, or they collapse to one chip per line beside a title. */
+    contain: none;
     flex-wrap: wrap;
     overflow: visible;
     mask-image: none;

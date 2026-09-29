@@ -4,6 +4,7 @@ import type { Address } from 'viem'
 import { useChains } from 'wagmi'
 import { ChevronDown, EyeOff, ImageOff } from 'lucide-react'
 
+import { TileSkeleton } from '@/components/Skeletons'
 import { Button } from '@/components/ui/button'
 import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -112,7 +113,7 @@ export function NftsCard({ address }: { address: Address }) {
       <CardContent>
         {nfts.isError && nfts.data && <StaleNote updatedAt={nfts.dataUpdatedAt} onRetry={() => nfts.refetch()} />}
         {nfts.isLoading ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">Loading NFTs…</p>
+          <TileSkeleton label="Loading NFTs" />
         ) : nfts.isError && !nfts.data ? (
           <LoadError what="NFTs" onRetry={() => nfts.refetch()} retrying={nfts.isFetching} />
         ) : all.length === 0 ? (

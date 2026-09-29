@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { useConnection } from 'wagmi'
 import { Download } from 'lucide-react'
 
+import { PageSkeleton } from '@/components/Skeletons'
 import { CommandBar } from '@/components/CommandBar'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { CurrencyPicker } from '@/components/CurrencyPicker'
@@ -146,29 +147,31 @@ function App() {
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
         <ErrorBoundary key={`${route.view}:${route.target ?? ''}`} label="This page">
-          <Suspense fallback={<p className="text-muted-foreground py-20 text-center text-sm">Loading…</p>}>
-            {route.view === 'gas' ? (
-              <GasView />
-            ) : route.view === 'lock' ? (
-              <LockView />
-            ) : route.view === 'view' ? (
-              <ViewWallet key={route.target ?? ''} target={route.target} />
-            ) : route.view === 'tx' ? (
-              <ExplainView key={route.target ?? ''} hash={route.target} />
-            ) : route.view === 'prove' || route.view === 'verify' ? (
-              <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
-            ) : route.view === 'watch' ? (
-              <WatchView />
-            ) : route.view === 'approvals' ? (
-              <ApprovalsView key={route.target ?? ''} target={route.target} />
-            ) : route.view === 'pay' ? (
-              <PayView key={route.params?.toString()} params={route.params} />
-            ) : route.view === 'wrapped' ? (
-              <WrappedView key={route.target ?? ''} target={route.target} />
-            ) : (
-              <Dashboard />
-            )}
-          </Suspense>
+          <div className="animate-page">
+            <Suspense fallback={<PageSkeleton />}>
+              {route.view === 'gas' ? (
+                <GasView />
+              ) : route.view === 'lock' ? (
+                <LockView />
+              ) : route.view === 'view' ? (
+                <ViewWallet key={route.target ?? ''} target={route.target} />
+              ) : route.view === 'tx' ? (
+                <ExplainView key={route.target ?? ''} hash={route.target} />
+              ) : route.view === 'prove' || route.view === 'verify' ? (
+                <ProofView key={route.params?.toString() ?? route.view} mode={route.view} params={route.params} />
+              ) : route.view === 'watch' ? (
+                <WatchView />
+              ) : route.view === 'approvals' ? (
+                <ApprovalsView key={route.target ?? ''} target={route.target} />
+              ) : route.view === 'pay' ? (
+                <PayView key={route.params?.toString()} params={route.params} />
+              ) : route.view === 'wrapped' ? (
+                <WrappedView key={route.target ?? ''} target={route.target} />
+              ) : (
+                <Dashboard />
+              )}
+            </Suspense>
+          </div>
         </ErrorBoundary>
       </main>
 

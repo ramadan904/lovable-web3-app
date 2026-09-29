@@ -4,6 +4,7 @@ import type { Address } from 'viem'
 import { useChains } from 'wagmi'
 import { List, Orbit } from 'lucide-react'
 
+import { OrbitSkeleton } from '@/components/Skeletons'
 import { Button } from '@/components/ui/button'
 import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -160,7 +161,7 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
 
         {txs.isError && txs.data && <StaleNote updatedAt={txs.dataUpdatedAt} onRetry={() => txs.refetch()} />}
         {txs.isLoading ? (
-          <p className="text-muted-foreground py-16 text-center text-sm">Mapping the galaxy…</p>
+          <OrbitSkeleton label="Mapping the galaxy…" />
         ) : txs.isError && !txs.data ? (
           <LoadError what="transactions" onRetry={() => txs.refetch()} retrying={txs.isFetching} className="py-16" />
         ) : nodes.length === 0 ? (

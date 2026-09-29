@@ -3,6 +3,7 @@ import type { Address } from 'viem'
 import { useChains } from 'wagmi'
 import { ChevronDown, EyeOff, ShieldAlert } from 'lucide-react'
 
+import { ListSkeleton } from '@/components/Skeletons'
 import { Button } from '@/components/ui/button'
 import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -96,7 +97,7 @@ export function TokensCard({ address }: { address: Address }) {
           <StaleNote updatedAt={holdings.dataUpdatedAt} onRetry={() => holdings.refetch()} />
         )}
         {holdings.isLoading ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">Loading tokens…</p>
+          <ListSkeleton rows={4} label="Loading tokens" />
         ) : holdings.isError && !holdings.data ? (
           <LoadError what="tokens" onRetry={() => holdings.refetch()} retrying={holdings.isFetching} />
         ) : all.length === 0 ? (
