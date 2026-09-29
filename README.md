@@ -131,6 +131,13 @@ JavaScript bundle, so anyone can read them. Restrict each key to your domains
 provider's dashboard, and never put a secret that can spend money or sign
 anything in a `VITE_*` variable.
 
+## First-visit tips
+
+Scam Shield, Approval Guard and Savings Lock each show a short "how this works"
+card on first visit, plus "?" explainers on the Shield panel and the health
+score. "Got it" hides a card in that browser; the footer's "Show tips again"
+brings them back.
+
 ## Transaction preview
 
 Every send, revoke and Savings Lock action opens a review screen before the

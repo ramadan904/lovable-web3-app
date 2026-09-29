@@ -104,6 +104,30 @@
   }
 }
 
+/* A row of network buttons: one swipeable line on phones (fading at the edge), wrapping on wider screens. */
+@utility chip-row {
+  display: flex;
+  gap: 0.5rem;
+  /* Without this the unwrapped row reports its full width upward and stretches its card past the screen. */
+  contain: inline-size;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: -3px;
+  padding: 3px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  & > * {
+    flex-shrink: 0;
+  }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  @media (width >= 40rem) {
+    flex-wrap: wrap;
+    overflow: visible;
+    mask-image: none;
+  }
+}
+
 /* Brand gradient text for headings and highlights. */
 @utility text-brand {
   background-image: linear-gradient(90deg, var(--brand-from), var(--brand-via), var(--brand-to));

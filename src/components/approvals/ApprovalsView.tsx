@@ -19,6 +19,7 @@ import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoadError, StaleNote } from '@/components/LoadError'
+import { OnboardingTip } from '@/components/OnboardingTip'
 import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -26,6 +27,7 @@ import { nftAbi, useApprovals, type Approval } from '@/lib/approvals'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 import type { ChainId } from '@/lib/wagmi'
+import { chainLabel } from '@/lib/chains'
 
 const RISK_ICON = { danger: ShieldAlert, warning: TriangleAlert, info: Info }
 const RISK_CLASS = {
@@ -202,6 +204,16 @@ export function ApprovalsView() {
           with one-click revoke.
         </p>
       </div>
+      <OnboardingTip id="approval-guard" title="What are approvals, and why revoke them?">
+        <p>
+          When you use an app like Uniswap or OpenSea, you give it permission to move your tokens. Those permissions
+          never expire on their own — and old, unlimited or unknown ones are exactly how wallet drainers empty wallets.
+        </p>
+        <p>
+          Revoking one costs a small network fee, never moves your funds, and you’ll see a simulation first. When in
+          doubt, revoke — the app will simply ask again next time you use it.
+        </p>
+      </OnboardingTip>
 
       {status !== 'connected' || !address ? (
         <div className="flex justify-center">
@@ -209,37 +221,40 @@ export function ApprovalsView() {
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            {chains
-              .filter((c) => BLOCKSCOUT[c.id])
-              .map((c) => (
-                <Button
-                  key={c.id}
-                  size="sm"
-                  variant={c.id === chainId ? 'default' : 'outline'}
-                  onClick={() => setChainId(c.id)}
-                >
-                  {c.name}
-                </Button>
-              ))}
-            <div className="ml-auto" />
-            <ExportReport
-              address={address}
-              chainId={chainId}
-              chainName={chain?.name ?? `Chain ${chainId}`}
-              explorer={explorer}
-              approvals={scan.data?.approvals}
-              approvalsFromHoldings={scan.data?.method === 'holdings'}
-            />
-            <Button
-              size="icon"
-              variant="ghost"
-              aria-label="Rescan"
-              onClick={() => scan.refetch()}
-              disabled={scan.isFetching}
-            >
-              <RefreshCw className={scan.isFetching ? 'animate-spin' : undefined} />
-            </Button>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="chip-row min-w-0 flex-1">
+              {chains
+                .filter((c) => BLOCKSCOUT[c.id])
+                .map((c) => (
+                  <Button
+                    key={c.id}
+                    size="sm"
+                    variant={c.id === chainId ? 'default' : 'outline'}
+                    onClick={() => setChainId(c.id)}
+                  >
+                    {chainLabel(c)}
+                  </Button>
+                ))}
+            </div>
+            <div className="flex items-center gap-1 self-end lg:self-auto">
+              <ExportReport
+                address={address}
+                chainId={chainId}
+                chainName={chain?.name ?? `Chain ${chainId}`}
+                explorer={explorer}
+                approvals={scan.data?.approvals}
+                approvalsFromHoldings={scan.data?.method === 'holdings'}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="Rescan"
+                onClick={() => scan.refetch()}
+                disabled={scan.isFetching}
+              >
+                <RefreshCw className={scan.isFetching ? 'animate-spin' : undefined} />
+              </Button>
+            </div>
           </div>
 
           <ErrorBoundary label="Wallet health">

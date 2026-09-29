@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Address } from 'viem'
 import { CircleCheck, CircleX, ChevronDown, Fish } from 'lucide-react'
 
+import { InfoTip } from '@/components/OnboardingTip'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Approval } from '@/lib/approvals'
 import { navigate } from '@/lib/route'
@@ -64,7 +65,14 @@ export function HealthCard({
             <span className="text-xs font-semibold">grade {health.grade}</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-semibold">Wallet health on {chainName}</p>
+            <p className="flex items-center gap-1.5 text-lg font-semibold">
+              Wallet health on {chainName}
+              <InfoTip label="the health score">
+                Starts at 100 and loses points for dangerous approvals (up to −45), risky ones such as unlimited or
+                unverified spenders (up to −30), address-poisoning attempts in your history (up to −20) and scam tokens
+                (up to −10). A = 90+, B = 75+, C = 60+, D = 40+.
+              </InfoTip>
+            </p>
             <ul className="mt-2 flex flex-col gap-1.5">
               {health.items.map((i) => (
                 <li key={i.text} className="flex items-start gap-2 text-sm">

@@ -1,5 +1,6 @@
 import { CircleCheck, Info, Loader, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react'
 
+import { InfoTip } from '@/components/OnboardingTip'
 import type { Finding } from '@/lib/shield'
 import { cn } from '@/lib/utils'
 
@@ -35,6 +36,11 @@ export function ShieldPanel({ findings, loading, fee, remaining }: Props) {
           <ShieldCheck className="size-4 text-emerald-600" />
         )}
         Scam Shield
+        <InfoTip label="Scam Shield">
+          Checks every recipient before you sign: look-alike addresses from address-poisoning scams, token contracts
+          (sending to one loses the tokens), brand-new or empty wallets, contracts, and whether you’ve paid them before.
+          It runs in your browser against public chain data.
+        </InfoTip>
         {!loading && findings.length === 0 && (
           <span className="text-muted-foreground font-normal">— no issues found</span>
         )}

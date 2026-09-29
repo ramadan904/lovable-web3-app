@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildPayLink } from '@/lib/payLink'
 import { cn } from '@/lib/utils'
+import { chainLabel } from '@/lib/chains'
 
 function splitShare(total: string, people: number, decimals: number) {
   try {
@@ -72,7 +73,7 @@ export function RequestCard({ address }: { address: Address }) {
         <CardDescription>Make a link anyone can open to pay you in one tap.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="chip-row">
           {chains.map((c) => (
             <Button
               key={c.id}
@@ -80,7 +81,7 @@ export function RequestCard({ address }: { address: Address }) {
               variant={c.id === chainId ? 'default' : 'outline'}
               onClick={() => setChainId(c.id)}
             >
-              {c.name}
+              {chainLabel(c)}
             </Button>
           ))}
         </div>

@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { cn, formatAmount } from '@/lib/utils'
+import { chainLabel } from '@/lib/chains'
 import type { ChainId } from '@/lib/wagmi'
 
 const ACTIONS = [
@@ -176,7 +177,7 @@ function GasAlert({ fees, chains }: { fees: Record<number, bigint | undefined>; 
                   settings.chainId === c.id ? 'bg-background shadow-xs' : 'text-muted-foreground',
                 )}
               >
-                {c.name.replace(' One', '').replace('OP Mainnet', 'Optimism')}
+                {chainLabel(c)}
               </button>
             ))}
           </div>

@@ -15,6 +15,7 @@ import { sepolia } from 'wagmi/chains'
 import { ExternalLink, FileCode2, Lock, LockOpen, PiggyBank, Plus, ShieldAlert, TriangleAlert, X } from 'lucide-react'
 
 import { ConnectCard } from '@/components/ConnectCard'
+import { OnboardingTip } from '@/components/OnboardingTip'
 import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -35,6 +36,7 @@ import {
 import { cn, formatAmount } from '@/lib/utils'
 import { config, type ChainId } from '@/lib/wagmi'
 import { celebrate } from '@/lib/celebrate'
+import { chainLabel } from '@/lib/chains'
 
 const errText = (e: Error) => ('shortMessage' in e ? String(e.shortMessage) : e.message)
 const isoDate = (d: Date) => d.toISOString().slice(0, 10)
@@ -135,7 +137,7 @@ function CreateLock({ owner }: { owner: Address }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="chip-row">
             {lockChains.map((c) => (
               <Button
                 key={c.id}
@@ -147,7 +149,7 @@ function CreateLock({ owner }: { owner: Address }) {
                   setAck(false)
                 }}
               >
-                {c.name}
+                {chainLabel(c)}
                 {c.testnet && ' (test)'}
               </Button>
             ))}
@@ -506,7 +508,7 @@ function AddExisting({ owner }: { owner: Address }) {
             .filter((c) => c.nativeCurrency.symbol === 'ETH')
             .map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {chainLabel(c)}
               </option>
             ))}
         </select>
@@ -577,17 +579,35 @@ export function LockView() {
         </p>
       </div>
       <UnauditedWarning />
+      <OnboardingTip id="savings-lock" title="How a Savings Lock works">
+        <ol className="list-decimal space-y-1 pl-5">
+          <li>Pick how much ETH to lock and the date it unlocks.</li>
+          <li>Your wallet deploys your own small contract holding that ETH. You’ll review a simulation first.</li>
+          <li>
+            Anyone can top it up. Only you can withdraw — and only after the date. Not even you can break it early.
+          </li>
+          <li>Your locks are remembered in this browser; on another device, add one by its contract address.</li>
+        </ol>
+      </OnboardingTip>
       {status !== 'connected' || !address ? (
         <div className="flex justify-center">
           <ConnectCard />
         </div>
       ) : (
         <>
-          {vaults.length > 0 && (
+          {vaults.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2">
               {vaults.map((v) => (
                 <VaultCard key={`${v.chainId}:${v.address}`} v={v} />
               ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center text-sm">
+              <PiggyBank className="text-muted-foreground size-8" aria-hidden />
+              <p className="font-medium">No savings locks yet</p>
+              <p className="text-muted-foreground max-w-sm">
+                Create your first one below. Try Sepolia with free test ETH before locking real money.
+              </p>
             </div>
           )}
           <CreateLock owner={address} />

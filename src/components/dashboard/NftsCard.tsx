@@ -11,6 +11,7 @@ import { BLOCKSCOUT } from '@/lib/blockscout'
 import { toNfts, type BsNft, type Nft } from '@/lib/nfts'
 import { cn } from '@/lib/utils'
 import { fetchWithRetry, HttpError } from '@/lib/net'
+import { chainLabel } from '@/lib/chains'
 
 const PAGE = 24
 
@@ -90,7 +91,7 @@ export function NftsCard({ address }: { address: Address }) {
               : `Collectibles on ${chain?.name}`}
           </CardDescription>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="chip-row">
           {chains
             .filter((c) => BLOCKSCOUT[c.id])
             .map((c) => (
@@ -103,7 +104,7 @@ export function NftsCard({ address }: { address: Address }) {
                   setShowSpam(false)
                 }}
               >
-                {c.name}
+                {chainLabel(c)}
               </Button>
             ))}
         </div>

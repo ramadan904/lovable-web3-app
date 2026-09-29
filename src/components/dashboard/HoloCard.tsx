@@ -50,7 +50,8 @@ export function HoloCard({
 
   function onMove(e: PointerEvent<HTMLDivElement>) {
     const el = ref.current
-    if (!el || reduced()) return
+    // Touch drags are page scrolls, not tilts; on phones the card just flips on tap.
+    if (!el || reduced() || e.pointerType !== 'mouse') return
     const r = el.getBoundingClientRect()
     const x = (e.clientX - r.left) / r.width
     const y = (e.clientY - r.top) / r.height

@@ -12,6 +12,7 @@ import { buildGalaxy, layoutGalaxy, type OrbitType } from '@/lib/galaxy'
 import { navigate } from '@/lib/route'
 import type { BsTx } from '@/lib/wrapped'
 import { fetchWithRetry, HttpError } from '@/lib/net'
+import { chainLabel } from '@/lib/chains'
 
 const SIZE = 600
 const TYPES: { type: OrbitType; label: string; varName: string }[] = [
@@ -128,7 +129,7 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
             Everyone this wallet deals with. Closer and bigger = more transactions. Hover a planet for details.
           </CardDescription>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="chip-row">
           {chains.map((c) => (
             <Button
               key={c.id}
@@ -136,7 +137,7 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
               variant={c.id === chainId ? 'default' : 'outline'}
               onClick={() => setChainId(c.id)}
             >
-              {c.name}
+              {chainLabel(c)}
             </Button>
           ))}
           <Button size="sm" variant="outline" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable}>

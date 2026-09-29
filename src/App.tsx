@@ -22,6 +22,7 @@ import { TokensCard } from '@/components/dashboard/TokensCard'
 import { promptInstall, useCanInstall } from '@/lib/install'
 import { useCurrency, usePrices } from '@/lib/prices'
 import { navigate, useRoute, type Route } from '@/lib/route'
+import { resetTips, useAnyTipDismissed } from '@/lib/tips'
 import { cn } from '@/lib/utils'
 
 // Each page is its own chunk, so the first visit only downloads the wallet dashboard.
@@ -87,6 +88,7 @@ function Dashboard() {
 function App() {
   const route = useRoute()
   const canInstall = useCanInstall()
+  const tipsHidden = useAnyTipDismissed()
   // Subscribing here re-renders the whole tree when the currency or FX rates change.
   useCurrency()
   usePrices()
@@ -179,7 +181,17 @@ function App() {
             <Download className="size-4" /> Install the app
           </button>
         )}
-        Press Ctrl K for commands · Built with React, Tailwind, shadcn/ui and wagmi.
+        <span>
+          Press Ctrl K for commands · Built with React, Tailwind, shadcn/ui and wagmi.
+          {tipsHidden && (
+            <>
+              {' · '}
+              <button className="underline underline-offset-4" onClick={resetTips}>
+                Show tips again
+              </button>
+            </>
+          )}
+        </span>
       </footer>
     </div>
   )

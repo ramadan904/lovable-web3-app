@@ -11,6 +11,7 @@ import { type Holding } from '@/lib/holdings'
 import { useHoldings } from '@/lib/useHoldings'
 import { formatFiat } from '@/lib/prices'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
+import { chainLabel } from '@/lib/chains'
 
 function TokenIcon({ h }: { h: Holding }) {
   const [broken, setBroken] = useState(false)
@@ -72,7 +73,7 @@ export function TokensCard({ address }: { address: Address }) {
             {real.some((h) => h.usd !== undefined) && !chain?.testnet ? ` · ${formatFiat(total)}` : ''}
           </CardDescription>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="chip-row">
           {chains
             .filter((c) => BLOCKSCOUT[c.id])
             .map((c) => (
@@ -85,7 +86,7 @@ export function TokensCard({ address }: { address: Address }) {
                   setShowSpam(false)
                 }}
               >
-                {c.name}
+                {chainLabel(c)}
               </Button>
             ))}
         </div>

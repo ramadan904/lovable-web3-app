@@ -7,6 +7,7 @@ import { Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, formatAmount } from '@/lib/utils'
+import { chainLabel } from '@/lib/chains'
 
 type Tick = { number: bigint; timestamp: number; txs: number; fullness: number; baseFee?: bigint }
 const KEEP = 14
@@ -71,7 +72,7 @@ export function BlockPulse() {
             was.
           </CardDescription>
         </div>
-        <div className="flex gap-2">
+        <div className="chip-row">
           {CHAINS.map((c) => (
             <Button
               key={c.id}
@@ -82,7 +83,7 @@ export function BlockPulse() {
                 setBlocks([])
               }}
             >
-              {c.name}
+              {chainLabel(c)}
             </Button>
           ))}
         </div>

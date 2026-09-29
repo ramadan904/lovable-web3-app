@@ -15,6 +15,7 @@ import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { navigate } from '@/lib/route'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 import { hourLabel, type WrappedStats } from '@/lib/wrapped'
+import { chainLabel } from '@/lib/chains'
 
 function safeNormalize(name: string) {
   try {
@@ -165,7 +166,7 @@ export function WrappedView({ target }: { target?: string }) {
         <Button type="submit">Wrap it</Button>
       </form>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="chip-row">
         {chains
           .filter((c) => BLOCKSCOUT[c.id])
           .map((c) => (
@@ -178,7 +179,7 @@ export function WrappedView({ target }: { target?: string }) {
                 setSlide(0)
               }}
             >
-              {c.name}
+              {chainLabel(c)}
             </Button>
           ))}
       </div>

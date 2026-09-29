@@ -23,6 +23,7 @@ import { shortenAddress } from '@/lib/utils'
 import { addWatched, useWatchlist } from '@/lib/watchlist'
 import type { BsTx } from '@/lib/wrapped'
 import { fetchWithRetry, HttpError } from '@/lib/net'
+import { chainLabel } from '@/lib/chains'
 
 function safeNormalize(name: string) {
   try {
@@ -55,7 +56,7 @@ function RecentTransactions({ address }: { address: Address }) {
           <CardTitle>Recent transactions</CardTitle>
           <CardDescription>Latest activity, in plain English. Tap one for the full explanation.</CardDescription>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="chip-row">
           {chains
             .filter((c) => BLOCKSCOUT[c.id])
             .map((c) => (
@@ -65,7 +66,7 @@ function RecentTransactions({ address }: { address: Address }) {
                 variant={c.id === chainId ? 'default' : 'outline'}
                 onClick={() => setChainId(c.id)}
               >
-                {c.name}
+                {chainLabel(c)}
               </Button>
             ))}
         </div>

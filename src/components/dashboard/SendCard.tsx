@@ -17,6 +17,7 @@ import { mainnet, sepolia } from 'wagmi/chains'
 import { ExternalLink, ScanEye, TriangleAlert } from 'lucide-react'
 
 import { ShieldPanel } from '@/components/dashboard/ShieldPanel'
+import { OnboardingTip } from '@/components/OnboardingTip'
 import { ReviewDialog } from '@/components/review/ReviewDialog'
 import type { SimCall } from '@/lib/simulate'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { useRecipientShield } from '@/lib/shield'
 import { USDC, USDC_DECIMALS } from '@/lib/tokens'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 import { celebrate } from '@/lib/celebrate'
+import { chainLabel } from '@/lib/chains'
 
 type Token = ActivityItem['token']
 const TOKENS: Token[] = ['ETH', 'USDC']
@@ -238,9 +240,19 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
         <CardDescription>Send ETH or USDC. Every recipient is checked by Scam Shield first.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <OnboardingTip id="scam-shield" title="Scam Shield has your back">
+          <p>
+            Paste an address, pick a contact or type an ENS name. Before your wallet opens, every recipient is checked
+            for look-alike (address-poisoning) scams, token contracts and brand-new wallets.
+          </p>
+          <p>
+            Then you get a final review with a simulation of exactly what will move — so a bad transaction is caught
+            before you sign it. Practise for free on Sepolia first.
+          </p>
+        </OnboardingTip>
         <div className="grid gap-2">
           <Label>Network</Label>
-          <div className="flex flex-wrap gap-2">
+          <div className="chip-row">
             {chains.map((c) => (
               <Button
                 key={c.id}
@@ -250,7 +262,7 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
                 onClick={() => switchChain.mutate({ chainId: c.id })}
                 disabled={switchChain.isPending || c.id === chain?.id}
               >
-                {c.name}
+                {chainLabel(c)}
               </Button>
             ))}
           </div>
@@ -295,6 +307,12 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
               autoComplete="off"
               spellCheck={false}
             />
+            {toInput === '' && (
+              <p className="text-muted-foreground text-xs">
+                Scam Shield checks the recipient as soon as you enter one. Copy addresses from a trusted source — never
+                from your transaction history.
+              </p>
+            )}
             {contacts.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {contacts.slice(0, 8).map((c) => (
