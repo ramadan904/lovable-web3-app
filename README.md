@@ -7,7 +7,7 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **Wallet Galaxy**: an animated orbit map of everyone a wallet transacts with — closer and bigger means more transactions; shape + colour mark apps, wallets and tokens; hover for details, click to open, or switch to a list view
 - a **holographic wallet card** that tilts with a moving sheen and flips to your receive QR code
 - **confetti** 🎉 on confirmed sends, created locks, withdrawals, batch revokes and proofs (off with reduced motion)
-- see ETH and USDC balances on Ethereum, Base and Sepolia at once, with USD values and a total
+- see native-coin (ETH / POL) and USDC balances on Ethereum, Base, Arbitrum, Optimism, Polygon and Sepolia at once, with fiat values and a total
 - see **every token** held on each network with USD values, with scam/spam airdrops hidden automatically (website-in-name bait, explorer-flagged scams, fake USDC/USDT/WETH/DAI contracts and look-alike Cyrillic/Greek letters)
 - browse **NFTs** per network as an image gallery (ERC-721 and ERC-1155 with counts); spam collections are hidden and their images never loaded
 - send ETH or USDC to an address or ENS name on any of those networks (use Sepolia to test for free)
@@ -23,20 +23,20 @@ A wallet dashboard built with [Lovable](https://lovable.dev)'s stack. Connect a 
 - **Proof of ownership**: sign a free message (with an optional purpose / challenge word) to get a link and QR; anyone opening it sees Verified or Not verified, checked in their browser — works for regular wallets and smart wallets (ERC-1271 / ERC-6492)
 - **View any wallet** (`#/view/<address | name.eth | contact>`): a read-only dashboard — portfolio, tokens with spam filter, recent transactions in plain English — with one-click Wrap / Watch / Save contact and the wallet's ENS profile (avatar, bio, X, GitHub, website), no connection needed
 - **Savings Lock** (Lock tab): deploy your own time-locked piggy bank contract (`contracts/SavingsLock.sol`), lock ETH until a date (max 5 years), let anyone top it up, and withdraw only after the unlock — with countdown, progress and a real-money acknowledgement off Sepolia
-- **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum and Base; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
+- **Whale Watch**: follow up to 10 wallets (address or ENS) on Ethereum, Base, Arbitrum, Optimism and Polygon; a live feed polls every 30 s and new moves get a NEW badge, a tab-title counter and an optional desktop notification
 - **Wallet health score** (Guard tab): a 0–100 score and A–F grade from risky approvals, scam tokens and an **address-poisoning detector** that scans token-transfer history for zero-value or dust transfers from look-alikes of addresses you really use (or your own), showing each fake next to the real one with the differences highlighted
 - **Approval Guard**: finds every token allowance and NFT operator approval the wallet ever granted (via explorer logs), checks which are still active on-chain, flags unlimited amounts, wallet (non-contract) spenders and unverified contracts, and revokes with one click — or, on wallets that support EIP-5792 batching (smart wallets / EIP-7702), revokes every risky approval with a single signature
 - **Payment links**: request an amount of ETH or USDC on a chosen network, share the link or QR, and the payer gets a pre-filled, Scam-Shield-checked payment page that only pays on the requested network; **split the bill** between up to 50 people (each share rounded up to the token's smallest unit)
-- **Transaction explainer**: paste any tx hash (or type it in the command bar) and get a plain-English headline — swaps, sends, mints, approvals (with unlimited-approval warnings), NFT operator grants and failures with reasons — plus token movements and fees in USD; searches Ethereum, Base and Sepolia
-- **Block pulse**: a live strip of the latest Base or Ethereum blocks — each tile drops in as a block lands, filled to how full it was, with transaction counts and details on hover
-- **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest highlighted, plus a **gas alert** that notifies you when Ethereum or Base gas drops below your target, and an **ETH price alert** (above/below a price in your chosen currency)
+- **Transaction explainer**: paste any tx hash (or type it in the command bar) and get a plain-English headline — swaps, sends, mints, approvals (with unlimited-approval warnings), NFT operator grants and failures with reasons — plus token movements and fees in USD; searches every supported network
+- **Block pulse**: a live strip of the latest blocks on any supported mainnet — each tile drops in as a block lands, filled to how full it was, with transaction counts and details on hover
+- **Live gas tracker**: current gas and the USD cost of common actions on each network, with the cheapest (by fiat cost) highlighted, plus a **gas alert** that notifies you when gas on a chosen network drops below your target, and an **ETH price alert** (above/below a price in your chosen currency)
 - **Wallet Wrapped**: an auto-playing story (5 s per slide, hold to pause, tap or arrow keys to skip, numbers count up) recapping of any wallet (yours or any address / ENS name) — transactions, wallet age, favourite contract, prime time, fees and an on-chain personality — with a downloadable share card and a share-on-X link. History comes from Blockscout's free public API.
 
 Tech:
 
 - **Vite + React + TypeScript**
 - **Tailwind CSS v4 + shadcn/ui**: `components.json` is set up, so `npx shadcn@latest add <component>` works
-- **wagmi + viem + TanStack Query**: wallet connect, balance and network switching on Ethereum, Base and Sepolia
+- **wagmi + viem + TanStack Query**: wallet connect, balance and network switching on Ethereum, Base, Arbitrum, Optimism, Polygon and Sepolia
 
 ## Live site
 

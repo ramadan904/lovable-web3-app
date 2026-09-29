@@ -120,7 +120,7 @@ export function Landing() {
         <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
           <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
             <p className="bg-background/70 text-muted-foreground w-fit rounded-full border px-3 py-1 text-xs font-medium backdrop-blur">
-              Ethereum · Base · Sepolia
+              Ethereum · Base · Arbitrum · Optimism · Polygon
             </p>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl">
               Your wallet, <span className="text-brand">with a bodyguard</span>

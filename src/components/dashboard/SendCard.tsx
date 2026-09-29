@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { recordActivity, useActivity, type ActivityItem } from '@/lib/activity'
 import { useBalances } from '@/lib/balances'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { findContact, useContacts } from '@/lib/contacts'
 import { useSendDraft } from '@/lib/sendDraft'
 import { useRecipientShield } from '@/lib/shield'
@@ -145,9 +145,10 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
   const feePerGas = fees.data?.maxFeePerGas ?? fees.data?.gasPrice
   const feeWei = feePerGas !== undefined ? (gas.data ?? FALLBACK_GAS[token]) * feePerGas : undefined
   const feeEth = feeWei !== undefined ? Number(formatUnits(feeWei, 18)) : undefined
+  const feePrice = nativeUsd(prices.data, chain)
   const feeText =
     feeEth !== undefined
-      ? `${formatAmount(feeEth, 6)} ETH${prices.data && !chain?.testnet ? ` (${formatFiat(feeEth * prices.data.eth)})` : ''}`
+      ? `${formatAmount(feeEth, 6)} ${chain?.nativeCurrency.symbol ?? 'ETH'}${feePrice !== undefined ? ` (${formatFiat(feeEth * feePrice)})` : ''}`
       : undefined
   const remainingText =
     available !== undefined && units !== null && units <= available
@@ -277,7 +278,7 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
                   )}
                   aria-pressed={token === t}
                 >
-                  {t}
+                  {t === 'ETH' ? (chain?.nativeCurrency.symbol ?? 'ETH') : t}
                 </button>
               ))}
             </div>

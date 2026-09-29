@@ -1,7 +1,16 @@
 // Plain-English commands, parsed locally (no AI service, nothing leaves the browser).
 
 export type Command =
-  | { kind: 'send'; amount: string; token: 'ETH' | 'USDC'; to: string; chain?: string }
+  | {
+      kind: 'send'
+      amount: string
+      /** 'ETH' means the chain's native coin (ETH, or POL on Polygon). */
+      token: 'ETH' | 'USDC'
+      /** The native coin the user actually typed, so it can be checked against the network. */
+      coin?: 'ETH' | 'POL'
+      to: string
+      chain?: string
+    }
   | { kind: 'switch'; chain: string }
   | { kind: 'theme'; theme: 'light' | 'dark' }
   | { kind: 'currency'; currency: 'USD' | 'NGN' | 'EUR' | 'GBP' }
@@ -18,12 +27,27 @@ export const CHAIN_ALIASES: Record<string, string> = {
   eth: 'ethereum',
   mainnet: 'ethereum',
   base: 'base',
+  arbitrum: 'arbitrum',
+  arb: 'arbitrum',
+  optimism: 'optimism',
+  op: 'optimism',
+  polygon: 'polygon',
+  matic: 'polygon',
   sepolia: 'sepolia',
   testnet: 'sepolia',
 }
 
+export const CHAIN_IDS: Record<string, number> = {
+  ethereum: 1,
+  base: 8453,
+  arbitrum: 42161,
+  optimism: 10,
+  polygon: 137,
+  sepolia: 11155111,
+}
+
 const AMOUNT = String.raw`(\d+(?:\.\d+)?|\.\d+)`
-const TOKEN = String.raw`(eth|ether|usdc|\$)`
+const TOKEN = String.raw`(eth|ether|pol|matic|usdc|\$)`
 // An address, an ENS name, or a saved contact nickname (resolved by the Send form).
 const RECIPIENT = String.raw`(0x[a-fA-F0-9]{40}|@?[\w-]+(?:\.[\w-]+)*)`
 const CHAIN = String.raw`(?:\s+(?:on|via)\s+(\w+))?`
@@ -37,9 +61,10 @@ const SEND_PATTERNS = [
   new RegExp(String.raw`^(?:send|pay|transfer)?\s*\$${AMOUNT}\s+to\s+${RECIPIENT}${CHAIN}$`, 'i'),
 ]
 
-function tokenOf(raw: string): 'ETH' | 'USDC' {
+function tokenOf(raw: string): { token: 'ETH' | 'USDC'; coin?: 'ETH' | 'POL' } {
   const t = raw.toLowerCase()
-  return t === 'usdc' || t === '$' ? 'USDC' : 'ETH'
+  if (t === 'usdc' || t === '$') return { token: 'USDC' }
+  return { token: 'ETH', coin: t === 'pol' || t === 'matic' ? 'POL' : 'ETH' }
 }
 
 function chainOf(raw?: string) {
@@ -51,9 +76,9 @@ export function parseCommand(input: string): Command | null {
   if (!text) return null
 
   let m = text.match(SEND_PATTERNS[0])
-  if (m) return withChain({ kind: 'send', amount: m[1], token: tokenOf(m[2]), to: m[3] }, m[4])
+  if (m) return withChain({ kind: 'send', amount: m[1], ...tokenOf(m[2]), to: m[3] }, m[4])
   m = text.match(SEND_PATTERNS[1])
-  if (m) return withChain({ kind: 'send', amount: m[2], token: tokenOf(m[3]), to: m[1] }, m[4])
+  if (m) return withChain({ kind: 'send', amount: m[2], ...tokenOf(m[3]), to: m[1] }, m[4])
   m = text.match(SEND_PATTERNS[2])
   if (m) return withChain({ kind: 'send', amount: m[1], token: 'USDC', to: m[2] }, m[3])
 

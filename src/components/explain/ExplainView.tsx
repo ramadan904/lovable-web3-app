@@ -18,7 +18,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { explainTx, type BsTxDetail } from '@/lib/explain'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { navigate } from '@/lib/route'
 import { cn, formatAmount } from '@/lib/utils'
 import { fetchWithRetry } from '@/lib/net'
@@ -56,7 +56,8 @@ export function ExplainView({ hash }: { hash?: string }) {
   const found = lookup.data
   const chain = found ? chains.find((c) => c.id === found.chainId) : undefined
   const e = found ? explainTx(found.tx) : undefined
-  const usd = (eth: number) => (prices.data && !chain?.testnet ? ` (${formatFiat(eth * prices.data.eth)})` : '')
+  const price = nativeUsd(prices.data, chain)
+  const usd = (eth: number) => (price !== undefined ? ` (${formatFiat(eth * price)})` : '')
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault()
@@ -71,7 +72,8 @@ export function ExplainView({ hash }: { hash?: string }) {
           <ScrollText className="text-primary size-6" /> Transaction explainer
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Paste any transaction hash from Ethereum, Base or Sepolia and get it in plain English.
+          Paste any transaction hash from Ethereum, Base, Arbitrum, Optimism, Polygon or Sepolia and get it in plain
+          English.
         </p>
       </div>
 
@@ -95,11 +97,11 @@ export function ExplainView({ hash }: { hash?: string }) {
         <p className="text-destructive text-center text-sm">That isn’t a valid transaction hash.</p>
       ) : lookup.isLoading ? (
         <p className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
-          <Loader className="size-4 animate-spin" /> Searching Ethereum, Base and Sepolia…
+          <Loader className="size-4 animate-spin" /> Searching every supported network…
         </p>
       ) : !found || !e ? (
         <p className="text-muted-foreground py-10 text-center text-sm">
-          Couldn’t find that transaction on Ethereum, Base or Sepolia. If it was just sent, give it a few seconds.
+          Couldn’t find that transaction on any supported network. If it was just sent, give it a few seconds.
         </p>
       ) : (
         <Card className="mx-auto w-full max-w-2xl gap-0 overflow-hidden py-0">

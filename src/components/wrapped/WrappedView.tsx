@@ -11,7 +11,7 @@ import { drawShareCard } from '@/components/wrapped/shareCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { BLOCKSCOUT, useWrapped } from '@/lib/blockscout'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { navigate } from '@/lib/route'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 import { hourLabel, type WrappedStats } from '@/lib/wrapped'
@@ -102,12 +102,16 @@ export function WrappedView({ target }: { target?: string }) {
   const label = ensName ?? reverse.data ?? (address ? shortenAddress(address) : '')
 
   const wrapped = useWrapped(address, chainId)
-  const chainName = chains.find((c) => c.id === chainId)?.name ?? ''
-  const testnet = chains.find((c) => c.id === chainId)?.testnet
+  const chain = chains.find((c) => c.id === chainId)
+  const chainName = chain?.name ?? ''
+  const price = nativeUsd(prices.data, chain)
 
   const stats = wrapped.data
   const feesEth = stats ? Number(formatUnits(stats.feesWei, 18)) : 0
-  const feesText = prices.data && !testnet ? formatFiat(feesEth * prices.data.eth) : `${formatAmount(feesEth, 5)} ETH`
+  const feesText =
+    price !== undefined
+      ? formatFiat(feesEth * price)
+      : `${formatAmount(feesEth, 5)} ${chain?.nativeCurrency.symbol ?? 'ETH'}`
   const slides = useMemo(
     () => (stats ? buildSlides(stats, label, chainName, feesText) : []),
     [stats, label, chainName, feesText],

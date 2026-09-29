@@ -4,7 +4,7 @@ import { useChains, useConnection, useSwitchChain } from 'wagmi'
 import { CornerDownLeft, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { EXAMPLES, parseCommand, type Command } from '@/lib/command'
+import { CHAIN_IDS, EXAMPLES, parseCommand, type Command } from '@/lib/command'
 import { navigate } from '@/lib/route'
 import { fillSendDraft } from '@/lib/sendDraft'
 import { setCurrency } from '@/lib/prices'
@@ -13,7 +13,7 @@ import { setTheme } from '@/lib/theme'
 function describe(cmd: Command, chainName: (key?: string) => string | undefined) {
   switch (cmd.kind) {
     case 'send':
-      return `Send ${cmd.amount} ${cmd.token} to ${cmd.to}${cmd.chain ? ` on ${chainName(cmd.chain)}` : ''} — you'll review it before signing`
+      return `Send ${cmd.amount} ${cmd.coin ?? cmd.token} to ${cmd.to}${cmd.chain ? ` on ${chainName(cmd.chain)}` : ''} — you'll review it before signing`
     case 'switch':
       return `Switch network to ${chainName(cmd.chain)}`
     case 'theme':
@@ -56,9 +56,15 @@ export function CommandBar() {
   const { address, chain, status } = useConnection()
   const switchChain = useSwitchChain()
 
-  const chainByKey = (key?: string) =>
-    chains.find((c) => (key === 'ethereum' ? c.id === 1 : c.name.toLowerCase() === key))
+  const chainByKey = (key?: string) => (key ? chains.find((c) => c.id === CHAIN_IDS[key]) : undefined)
   const chainName = (key?: string) => chainByKey(key)?.name ?? key
+  // "send 1 eth" on Polygon would move POL (and "pol" elsewhere would move ETH), so the coin must match.
+  const coinProblem = (c: Command | null) => {
+    if (c?.kind !== 'send' || !c.coin) return undefined
+    const network = chainByKey(c.chain) ?? chain
+    if (!network || network.nativeCurrency.symbol === c.coin) return undefined
+    return `${network.name} uses ${network.nativeCurrency.symbol}, not ${c.coin}. Add “on ${c.coin === 'POL' ? 'polygon' : 'base'}” (or another network) to pick where to send.`
+  }
 
   function show() {
     setText('')
@@ -87,6 +93,11 @@ export function CommandBar() {
   async function run(c: Command) {
     switch (c.kind) {
       case 'send': {
+        const problem = coinProblem(c)
+        if (problem) {
+          setMessage(problem)
+          return
+        }
         const target = chainByKey(c.chain)
         if (target && connected && target.id !== chain?.id) switchChain.mutate({ chainId: target.id })
         navigate({ view: 'dashboard' })
@@ -203,7 +214,11 @@ export function CommandBar() {
                     disabled={!!needsWallet}
                     className="bg-muted flex w-full items-center justify-between gap-3 rounded-md px-3 py-3 text-left disabled:opacity-60"
                   >
-                    <span>{needsWallet ? 'Connect a wallet first to do that.' : describe(cmd, chainName)}</span>
+                    <span>
+                      {needsWallet
+                        ? 'Connect a wallet first to do that.'
+                        : (coinProblem(cmd) ?? describe(cmd, chainName))}
+                    </span>
                     {!needsWallet && <CornerDownLeft className="text-muted-foreground size-4 shrink-0" />}
                   </button>
                 ) : (

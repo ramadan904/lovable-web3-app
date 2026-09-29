@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatGwei, formatUnits, parseGwei } from 'viem'
-import { useBlockNumber, useChains, useEstimateFeesPerGas } from 'wagmi'
-import { mainnet, base } from 'wagmi/chains'
+import { useQueries } from '@tanstack/react-query'
+import { useBlockNumber, useChains, useConfig, useEstimateFeesPerGas } from 'wagmi'
+import { estimateFeesPerGasQueryOptions } from 'wagmi/query'
+import { mainnet } from 'wagmi/chains'
 import { BellRing, Fuel, PartyPopper, Trophy } from 'lucide-react'
 
 import { BlockPulse } from '@/components/gas/BlockPulse'
@@ -9,7 +11,7 @@ import { PriceAlert } from '@/components/gas/PriceAlert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { cn, formatAmount } from '@/lib/utils'
 import type { ChainId } from '@/lib/wagmi'
 
@@ -25,24 +27,20 @@ function useFeePerGas(chainId: ChainId) {
   return { perGas: fees.data?.maxFeePerGas ?? fees.data?.gasPrice, loading: fees.isLoading, error: fees.isError }
 }
 
-function ChainGasCard({
-  chainId,
-  name,
-  testnet,
-  cheapest,
-}: {
-  chainId: ChainId
-  name: string
-  testnet?: boolean
-  cheapest: boolean
-}) {
-  const { perGas, loading, error } = useFeePerGas(chainId)
-  const block = useBlockNumber({ chainId, watch: true })
+type GasChain = ReturnType<typeof useChains>[number]
+
+function ChainGasCard({ chain, cheapest }: { chain: GasChain; cheapest: boolean }) {
+  const { perGas, loading, error } = useFeePerGas(chain.id as ChainId)
+  const block = useBlockNumber({ chainId: chain.id as ChainId, watch: true })
   const prices = usePrices()
+  const price = nativeUsd(prices.data, chain)
+  const symbol = chain.nativeCurrency.symbol
+  const name = chain.name
+  const testnet = chain.testnet
   const cost = (gas: bigint) => {
     if (perGas === undefined) return '—'
-    const eth = Number(formatUnits(gas * perGas, 18))
-    return prices.data && !testnet ? formatFiat(eth * prices.data.eth) : `${formatAmount(eth, 6)} ETH`
+    const native = Number(formatUnits(gas * perGas, 18))
+    return price !== undefined ? formatFiat(native * price) : `${formatAmount(native, 6)} ${symbol}`
   }
 
   return (
@@ -78,7 +76,7 @@ function ChainGasCard({
           <tbody>
             {ACTIONS.map((a) => (
               <tr key={a.label} className="border-b last:border-0">
-                <td className="text-muted-foreground py-2">{a.label}</td>
+                <td className="text-muted-foreground py-2">{a.label.replace('ETH', symbol)}</td>
                 <td className="py-2 text-right tabular-nums">{cost(a.gas)}</td>
               </tr>
             ))}
@@ -111,7 +109,7 @@ function parseTarget(gwei: string) {
   }
 }
 
-function GasAlert({ fees }: { fees: Record<number, bigint | undefined> }) {
+function GasAlert({ fees, chains }: { fees: Record<number, bigint | undefined>; chains: GasChain[] }) {
   const [settings, setSettings] = useState(loadAlert)
   const [permission, setPermission] = useState(() =>
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
@@ -129,7 +127,7 @@ function GasAlert({ fees }: { fees: Record<number, bigint | undefined> }) {
   const target = parseTarget(settings.gwei)
   const current = fees[settings.chainId]
   const below = settings.enabled && target !== undefined && current !== undefined && current <= target
-  const name = settings.chainId === base.id ? 'Base' : 'Ethereum'
+  const name = chains.find((c) => c.id === settings.chainId)?.name ?? 'Ethereum'
 
   // Fire a desktop notification when gas crosses below the target (not on every refresh).
   const wasBelow = useRef(false)
@@ -166,19 +164,19 @@ function GasAlert({ fees }: { fees: Record<number, bigint | undefined> }) {
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span>When</span>
-          <div className="bg-muted inline-flex rounded-md p-1">
-            {[mainnet, base].map((c) => (
+          <div className="bg-muted inline-flex flex-wrap rounded-md p-1">
+            {chains.map((c) => (
               <button
                 key={c.id}
                 type="button"
                 aria-pressed={settings.chainId === c.id}
-                onClick={() => update({ chainId: c.id })}
+                onClick={() => update({ chainId: c.id as ChainId })}
                 className={cn(
                   'rounded px-3 py-1 font-medium',
                   settings.chainId === c.id ? 'bg-background shadow-xs' : 'text-muted-foreground',
                 )}
               >
-                {c.id === base.id ? 'Base' : 'Ethereum'}
+                {c.name.replace(' One', '').replace('OP Mainnet', 'Optimism')}
               </button>
             ))}
           </div>
@@ -225,12 +223,27 @@ function GasAlert({ fees }: { fees: Record<number, bigint | undefined> }) {
 }
 
 export function GasView() {
+  const config = useConfig()
   const chains = useChains()
-  // Cheapest is judged between the two mainnets; these share the cards' cached queries.
-  const eth = useFeePerGas(mainnet.id)
-  const l2 = useFeePerGas(base.id)
-  const cheapestId =
-    eth.perGas !== undefined && l2.perGas !== undefined ? (l2.perGas <= eth.perGas ? base.id : mainnet.id) : undefined
+  const prices = usePrices()
+  const mainnets = chains.filter((c) => !c.testnet)
+  // Same query keys as the cards' useEstimateFeesPerGas, so this shares their cache.
+  const fees = useQueries({
+    queries: mainnets.map((c) => ({
+      ...estimateFeesPerGasQueryOptions(config, { chainId: c.id }),
+      refetchInterval: 12_000,
+    })),
+  })
+  const perGas: Record<number, bigint | undefined> = Object.fromEntries(
+    mainnets.map((c, i) => [c.id, fees[i].data?.maxFeePerGas ?? fees[i].data?.gasPrice]),
+  )
+  // Cheapest = lowest fiat cost for the same gas (POL and ETH gas prices aren't comparable in gwei).
+  const costs = mainnets.flatMap((c) => {
+    const price = nativeUsd(prices.data, c)
+    const gas = perGas[c.id]
+    return price !== undefined && gas !== undefined ? [{ id: c.id, usd: Number(formatUnits(gas, 18)) * price }] : []
+  })
+  const cheapestId = costs.length === mainnets.length ? costs.reduce((a, b) => (b.usd < a.usd ? b : a)).id : undefined
 
   return (
     <div className="flex flex-col gap-6">
@@ -239,18 +252,18 @@ export function GasView() {
           <Fuel className="text-primary size-6" /> Live gas tracker
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          What common actions cost right now on each network, updated every block. Base prices exclude its small L1 data
-          fee.
+          What common actions cost right now on each network, updated every block. Base, Arbitrum and Optimism prices
+          exclude their small L1 data fee.
         </p>
       </div>
       <BlockPulse />
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {chains.map((c) => (
-          <ChainGasCard key={c.id} chainId={c.id} name={c.name} testnet={c.testnet} cheapest={c.id === cheapestId} />
+          <ChainGasCard key={c.id} chain={c} cheapest={c.id === cheapestId} />
         ))}
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        <GasAlert fees={{ [mainnet.id]: eth.perGas, [base.id]: l2.perGas }} />
+        <GasAlert fees={perGas} chains={mainnets} />
         <PriceAlert />
       </div>
     </div>

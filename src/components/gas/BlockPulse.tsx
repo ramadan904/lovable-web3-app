@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { formatGwei } from 'viem'
 import { useWatchBlocks } from 'wagmi'
-import { base, mainnet } from 'wagmi/chains'
+import { arbitrum, base, mainnet, optimism, polygon } from 'wagmi/chains'
 import { Activity } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,9 @@ const KEEP = 14
 const CHAINS = [
   { id: base.id, name: 'Base', blockTime: '~2 s' },
   { id: mainnet.id, name: 'Ethereum', blockTime: '~12 s' },
+  { id: arbitrum.id, name: 'Arbitrum', blockTime: '~0.25 s' },
+  { id: optimism.id, name: 'Optimism', blockTime: '~2 s' },
+  { id: polygon.id, name: 'Polygon', blockTime: '~2 s' },
 ] as const
 
 /** Live strip of the latest blocks: each tile's fill is how full the block was. */

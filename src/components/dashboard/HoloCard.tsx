@@ -1,12 +1,12 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import type { Address } from 'viem'
-import { useEnsName } from 'wagmi'
+import { useChains, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { QRCodeSVG } from 'qrcode.react'
 import { RotateCcw } from 'lucide-react'
 
 import { toEth, toUsdc, useBalances } from '@/lib/balances'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -37,15 +37,15 @@ export function HoloCard({
   const ens = useEnsName({ address, chainId: mainnet.id })
   const { balances } = useBalances(address)
   const prices = usePrices()
+  const chains = useChains()
 
   const total = prices.data
-    ? balances
-        .filter((b) => b.chainId !== 11155111)
-        .reduce(
-          (s, b) =>
-            s + (b.eth ? toEth(b.eth) * prices.data!.eth : 0) + (b.usdc ? toUsdc(b.usdc) * prices.data!.usdc : 0),
-          0,
-        )
+    ? balances.reduce((s, b) => {
+        const chain = chains.find((c) => c.id === b.chainId)
+        if (!chain || chain.testnet) return s
+        const coin = nativeUsd(prices.data, chain) ?? 0
+        return s + (b.eth ? toEth(b.eth) * coin : 0) + (b.usdc ? toUsdc(b.usdc) * prices.data!.usdc : 0)
+      }, 0)
     : undefined
 
   function onMove(e: PointerEvent<HTMLDivElement>) {
@@ -123,7 +123,7 @@ export function HoloCard({
             <div className="min-w-0 text-left">
               <p className="text-brand text-lg font-bold">Scan to pay me</p>
               <p className="mt-1 font-mono text-[11px] break-all opacity-80">{address}</p>
-              <p className="mt-2 text-[11px] opacity-60">Ethereum · Base · Sepolia</p>
+              <p className="mt-2 text-[11px] opacity-60">Ethereum · Base · Arbitrum · Optimism · Polygon</p>
             </div>
           </div>
         </div>

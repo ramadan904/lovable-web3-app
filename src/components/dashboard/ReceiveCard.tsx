@@ -25,7 +25,8 @@ export function ReceiveCard({ address }: { address: Address }) {
       <CardHeader>
         <CardTitle>Receive</CardTitle>
         <CardDescription>
-          Scan or share this address to receive ETH or USDC on Ethereum, Base or Sepolia.
+          Scan or share this address to receive ETH, POL or USDC on Ethereum, Base, Arbitrum, Optimism, Polygon or
+          Sepolia — it’s the same address on all of them.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
@@ -33,9 +34,7 @@ export function ReceiveCard({ address }: { address: Address }) {
         <div className="rounded-lg bg-white p-3">
           <QRCodeSVG value={address} size={160} bgColor="#ffffff" fgColor="#000000" />
         </div>
-        <p className="bg-muted w-full rounded-md p-3 text-center font-mono text-sm break-all select-all">
-          {address}
-        </p>
+        <p className="bg-muted w-full rounded-md p-3 text-center font-mono text-sm break-all select-all">{address}</p>
         <Button variant="outline" className="w-full" onClick={copy}>
           {copied ? <Check /> : <Copy />}
           {copied ? 'Copied' : 'Copy address'}

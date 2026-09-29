@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchWithRetry, HttpError } from '@/lib/net'
 
-export type Prices = { eth: number; usdc: number }
+export type Prices = { eth: number; usdc: number; pol?: number }
 
 export const CURRENCIES = ['USD', 'NGN', 'EUR', 'GBP'] as const
 export type Currency = (typeof CURRENCIES)[number]
@@ -48,7 +48,7 @@ export function usePrices() {
     queryKey: ['prices'],
     queryFn: async (): Promise<Prices> => {
       const res = await fetchWithRetry(
-        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,usd-coin&vs_currencies=usd,ngn,eur,gbp',
+        'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,usd-coin,polygon-ecosystem-token&vs_currencies=usd,ngn,eur,gbp',
       )
       if (!res.ok) throw new HttpError(res, 'Price request')
       const data = (await res.json()) as Record<string, Partial<Record<string, number>>>
@@ -61,12 +61,24 @@ export function usePrices() {
       }
       rates = next
       emit()
-      return { eth, usdc: data['usd-coin']?.usd ?? 1 }
+      return { eth, usdc: data['usd-coin']?.usd ?? 1, pol: data['polygon-ecosystem-token']?.usd }
     },
     staleTime: 60_000,
     refetchInterval: 120_000,
     retry: 1,
   })
+}
+
+/** USD price of a chain's native coin (ETH or POL); undefined on testnets or when unknown. */
+export function nativeUsd(
+  prices: Prices | undefined,
+  chain?: { testnet?: boolean; nativeCurrency: { symbol: string } },
+) {
+  if (!prices || !chain || chain.testnet) return undefined
+  const symbol = chain.nativeCurrency.symbol
+  if (symbol === 'ETH') return prices.eth
+  if (symbol === 'POL' || symbol === 'MATIC') return prices.pol
+  return undefined
 }
 
 /** A USD amount converted to the viewer's currency (falls back to USD when no rate is known). */
@@ -79,10 +91,13 @@ export function convertUsd(usd: number): { value: number; code: Currency } {
 export function formatFiat(usd: number) {
   const rate = rates[currency]
   const [code, value] = rate ? [currency, usd * rate] : ['USD', usd]
-  return value.toLocaleString(undefined, {
-    style: 'currency',
-    currency: code,
-    currencyDisplay: 'narrowSymbol',
-    maximumFractionDigits: code === 'NGN' && Math.abs(value) >= 100 ? 0 : 2,
-  })
+  const format = (v: number) =>
+    v.toLocaleString(undefined, {
+      style: 'currency',
+      currency: code,
+      currencyDisplay: 'narrowSymbol',
+      maximumFractionDigits: code === 'NGN' && Math.abs(v) >= 100 ? 0 : 2,
+    })
+  // Fractions of a cent (e.g. Polygon gas) would otherwise read as a misleading "$0.00".
+  return value > 0 && value < 0.01 ? `<${format(0.01)}` : format(value)
 }

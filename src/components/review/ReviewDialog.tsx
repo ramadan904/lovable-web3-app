@@ -7,7 +7,7 @@ import { ScanEye, X } from 'lucide-react'
 import { ShieldPanel } from '@/components/dashboard/ShieldPanel'
 import { TxPreview } from '@/components/review/TxPreview'
 import { Button } from '@/components/ui/button'
-import { usePrices } from '@/lib/prices'
+import { nativeUsd, usePrices } from '@/lib/prices'
 import type { Finding } from '@/lib/shield'
 import { surprises, useSimulation, type ExpectedOut, type SimCall } from '@/lib/simulate'
 
@@ -75,7 +75,7 @@ export function ReviewDialog({
   if (!open) return null
 
   const nativeSymbol = chain?.nativeCurrency.symbol ?? 'ETH'
-  const nativeUsd = !chain?.testnet && nativeSymbol === 'ETH' ? prices.data?.eth : undefined
+  const nativePrice = nativeUsd(prices.data, chain)
   const reverts = sim.data?.status === 'revert'
   const danger = shield?.findings.some((f) => f.level === 'danger')
   const surprise = surprises(sim.data, expected)
@@ -112,7 +112,7 @@ export function ReviewDialog({
             loading={sim.isLoading}
             chainName={chain?.name}
             feePerGas={fees.data?.maxFeePerGas ?? fees.data?.gasPrice}
-            nativeUsd={nativeUsd}
+            nativeUsd={nativePrice}
             nativeSymbol={nativeSymbol}
             expected={expected}
           />

@@ -42,7 +42,7 @@ export function ActivityCard({ address }: { address: Address }) {
                   <StatusIcon item={item} />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">
-                      {item.amount} {item.token}{' '}
+                      {item.amount} {item.token === 'ETH' ? (chain?.nativeCurrency.symbol ?? 'ETH') : item.token}{' '}
                       <span className="text-muted-foreground font-normal">
                         to <span className="font-mono">{shortenAddress(item.to)}</span>
                       </span>

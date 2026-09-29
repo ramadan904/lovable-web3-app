@@ -5,14 +5,17 @@ import { RefreshCw, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toEth, toUsdc, useBalances } from '@/lib/balances'
-import { formatFiat, usePrices } from '@/lib/prices'
+import { formatFiat, nativeUsd, usePrices } from '@/lib/prices'
 import { formatAmount } from '@/lib/utils'
 
-function Cell({ amount, usd, loading }: { amount?: number; usd?: number; loading: boolean }) {
+function Cell({ amount, usd, loading, unit }: { amount?: number; usd?: number; loading: boolean; unit?: string }) {
   if (amount === undefined) return <span className="text-muted-foreground">{loading ? '…' : '—'}</span>
   return (
     <div className="flex flex-col items-end">
-      <span>{formatAmount(amount)}</span>
+      <span>
+        {formatAmount(amount)}
+        {unit && <span className="text-muted-foreground ml-1 text-xs">{unit}</span>}
+      </span>
       {usd !== undefined && amount > 0 && <span className="text-muted-foreground text-xs">{formatFiat(usd)}</span>}
     </div>
   )
@@ -29,7 +32,8 @@ export function Portfolio({ address }: { address: Address }) {
     ? balances.reduce((sum, b) => {
         const chain = chains.find((c) => c.id === b.chainId)
         if (chain?.testnet) return sum
-        return sum + (b.eth ? toEth(b.eth) * p.eth : 0) + (b.usdc ? toUsdc(b.usdc) * p.usdc : 0)
+        const price = nativeUsd(p, chain) ?? 0
+        return sum + (b.eth ? toEth(b.eth) * price : 0) + (b.usdc ? toUsdc(b.usdc) * p.usdc : 0)
       }, 0)
     : undefined
   const anyLoaded = balances.some((b) => b.eth !== undefined || b.usdc !== undefined)
@@ -44,7 +48,10 @@ export function Portfolio({ address }: { address: Address }) {
             {total !== undefined && anyLoaded ? formatFiat(total) : isLoading || prices.isLoading ? '…' : '—'}
           </CardTitle>
           {p ? (
-            <p className="text-muted-foreground text-xs">1 ETH = {formatFiat(p.eth)} · prices from CoinGecko</p>
+            <p className="text-muted-foreground text-xs">
+              1 ETH = {formatFiat(p.eth)}
+              {p.pol !== undefined && ` · 1 POL = ${formatFiat(p.pol)}`} · prices from CoinGecko
+            </p>
           ) : (
             prices.isError && (
               <p className="text-xs text-amber-700 dark:text-amber-400">
@@ -78,7 +85,7 @@ export function Portfolio({ address }: { address: Address }) {
             <thead>
               <tr className="text-muted-foreground border-b text-left">
                 <th className="py-2 font-medium">Network</th>
-                <th className="py-2 text-right font-medium">ETH</th>
+                <th className="py-2 text-right font-medium">Coin</th>
                 <th className="py-2 text-right font-medium">USDC</th>
               </tr>
             </thead>
@@ -88,6 +95,7 @@ export function Portfolio({ address }: { address: Address }) {
                 const eth = b?.eth !== undefined ? toEth(b.eth) : undefined
                 const usdc = b?.usdc !== undefined ? toUsdc(b.usdc) : undefined
                 const priced = p && !chain.testnet
+                const coinPrice = nativeUsd(p, chain)
                 return (
                   <tr key={chain.id} className="border-b align-top last:border-0">
                     <td className="py-3">
@@ -101,7 +109,8 @@ export function Portfolio({ address }: { address: Address }) {
                     <td className="py-3 text-right tabular-nums">
                       <Cell
                         amount={eth}
-                        usd={priced && eth !== undefined ? eth * p.eth : undefined}
+                        unit={chain.nativeCurrency.symbol}
+                        usd={coinPrice !== undefined && eth !== undefined ? eth * coinPrice : undefined}
                         loading={isLoading}
                       />
                     </td>

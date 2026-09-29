@@ -7,6 +7,9 @@ import { fetchWithRetry, HttpError } from '@/lib/net'
 export const BLOCKSCOUT: Record<number, string> = {
   1: 'https://eth.blockscout.com',
   8453: 'https://base.blockscout.com',
+  42161: 'https://arbitrum.blockscout.com',
+  10: 'https://optimism.blockscout.com',
+  137: 'https://polygon.blockscout.com',
   11155111: 'https://eth-sepolia.blockscout.com',
 }
 

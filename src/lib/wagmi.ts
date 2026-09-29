@@ -1,5 +1,5 @@
 import { createConfig, type CreateConnectorFn } from 'wagmi'
-import { base, mainnet, sepolia } from 'wagmi/chains'
+import { arbitrum, base, mainnet, optimism, polygon, sepolia } from 'wagmi/chains'
 import { injected, walletConnect } from 'wagmi/connectors'
 
 import { transportFor } from '@/lib/rpc'
@@ -25,11 +25,14 @@ if (wcProjectId) {
 }
 
 export const config = createConfig({
-  chains: [mainnet, base, sepolia],
+  chains: [mainnet, base, arbitrum, optimism, polygon, sepolia],
   connectors,
   transports: {
     [mainnet.id]: transportFor(mainnet.id),
     [base.id]: transportFor(base.id),
+    [arbitrum.id]: transportFor(arbitrum.id),
+    [optimism.id]: transportFor(optimism.id),
+    [polygon.id]: transportFor(polygon.id),
     [sepolia.id]: transportFor(sepolia.id),
   },
 })

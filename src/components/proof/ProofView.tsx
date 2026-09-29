@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useConnection, useEnsName, useSignMessage } from 'wagmi'
 import { verifyMessage } from 'wagmi/actions'
-import { base, mainnet } from 'wagmi/chains'
+import { arbitrum, base, mainnet, optimism, polygon } from 'wagmi/chains'
 import { QRCodeSVG } from 'qrcode.react'
 import { BadgeCheck, Check, Copy, Fingerprint, Loader, ShieldX, TriangleAlert } from 'lucide-react'
 
@@ -119,12 +119,12 @@ function CreateProof() {
 
 function VerifyProof({ proof }: { proof: Proof }) {
   const ens = useEnsName({ address: proof.address, chainId: mainnet.id })
-  // EOAs verify offline; smart wallets (ERC-1271 / ERC-6492) need a chain, so try Ethereum then Base.
+  // EOAs verify offline; smart wallets (ERC-1271 / ERC-6492) need a chain, so try each mainnet in turn.
   const check = useQuery({
     queryKey: ['verify', proof.address, proof.signature, proof.message],
     retry: false,
     queryFn: async () => {
-      for (const chainId of [mainnet.id, base.id]) {
+      for (const chainId of [mainnet.id, base.id, arbitrum.id, optimism.id, polygon.id]) {
         try {
           if (await verifyMessage(config, { ...proof, chainId })) return true
         } catch {

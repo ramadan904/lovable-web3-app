@@ -3,7 +3,7 @@ import { useQueries, type UseQueryResult } from '@tanstack/react-query'
 import { isAddress, type Address } from 'viem'
 import { normalize } from 'viem/ens'
 import { getEnsAddress } from 'wagmi/actions'
-import { base, mainnet } from 'wagmi/chains'
+import { arbitrum, base, mainnet, optimism, polygon } from 'wagmi/chains'
 import { ArrowDownLeft, ArrowUpRight, Bell, BellRing, Eye, Plus, X, Zap } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,9 @@ import { fetchWithRetry, HttpError } from '@/lib/net'
 const CHAINS = [
   { id: mainnet.id, name: 'Ethereum', explorer: 'https://etherscan.io' },
   { id: base.id, name: 'Base', explorer: 'https://basescan.org' },
+  { id: arbitrum.id, name: 'Arbitrum', explorer: 'https://arbiscan.io' },
+  { id: optimism.id, name: 'Optimism', explorer: 'https://optimistic.etherscan.io' },
+  { id: polygon.id, name: 'Polygon', explorer: 'https://polygonscan.com' },
 ]
 const POLL_MS = 30_000
 
