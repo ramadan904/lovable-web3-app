@@ -11,7 +11,8 @@ function parse(hash: string): Route {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?')
   const [view, ...rest] = path.split('/')
   if (view === 'gas') return { view: 'gas' }
-  if (view === 'approvals') return { view: 'approvals' }
+  if (view === 'approvals')
+    return { view: 'approvals', target: rest.join('/') ? decodeURIComponent(rest.join('/')) : undefined }
   if (view === 'watch') return { view: 'watch' }
   if (view === 'pay' || view === 'verify') return { view, params: new URLSearchParams(query) }
   if (view === 'prove') return { view: 'prove' }
@@ -36,7 +37,8 @@ export function navigate(route: Route) {
     ? `#/${route.view}?${route.params}`
     : route.view === 'dashboard'
       ? '#/'
-      : (route.view === 'wrapped' || route.view === 'tx' || route.view === 'view') && route.target
+      : (route.view === 'wrapped' || route.view === 'tx' || route.view === 'view' || route.view === 'approvals') &&
+          route.target
         ? `#/${route.view}/${encodeURIComponent(route.target)}`
         : `#/${route.view}`
   if (window.location.hash !== hash) window.location.hash = hash

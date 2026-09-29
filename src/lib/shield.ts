@@ -45,6 +45,42 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known,
 
   if (!to || !chainId) return { findings: [] as Finding[], loading: false }
 
+  const findings = assessRecipient({
+    to,
+    chainName,
+    token,
+    self,
+    known,
+    contacts,
+    onChain: code.isSuccess ? { code: code.data, nonce: nonce.data, balance: balance.data?.value } : undefined,
+  })
+  return { findings, loading: code.isLoading || nonce.isLoading }
+}
+
+/** What the chain says about an address (any field may be missing if the RPC didn't answer). */
+export type OnChainFacts = { code?: string; nonce?: number; balance?: bigint }
+
+/**
+ * The Scam Shield rules as a pure function, shared by the Send form and the
+ * no-wallet Threshold check so both always reach the same verdict.
+ */
+export function assessRecipient({
+  to,
+  chainName,
+  token,
+  self,
+  known,
+  contacts = [],
+  onChain,
+}: {
+  to: Address
+  chainName?: string
+  token: string
+  self?: Address
+  known: Address[]
+  contacts?: Contact[]
+  onChain?: OnChainFacts
+}): Finding[] {
   const findings: Finding[] = []
   const lower = to.toLowerCase()
   const net = chainName ?? 'this network'
@@ -81,7 +117,8 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known,
     findings.push({ level: 'info', title: 'You are sending to yourself' })
   }
 
-  const bytecode = code.data
+  const bytecode = onChain?.code
+  const nonce = onChain?.nonce
   if (bytecode && bytecode !== '0x') {
     if (bytecode.toLowerCase().startsWith('0xef0100')) {
       findings.push({
@@ -96,17 +133,17 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known,
         detail: `Only continue if you know it can receive ${token} on ${net} — e.g. a multisig or an exchange deposit address.`,
       })
     }
-  } else if (code.isSuccess && nonce.data === 0 && balance.data?.value === 0n) {
+  } else if (onChain && nonce === 0 && onChain.balance === 0n) {
     findings.push({
       level: 'warning',
       title: `Brand-new address on ${net}`,
       detail: 'It has never sent a transaction and holds nothing here. Double-check every character.',
     })
-  } else if (nonce.data !== undefined && nonce.data > 0) {
+  } else if (nonce !== undefined && nonce > 0) {
     findings.push({
       level: 'ok',
       title: `Active wallet on ${net}`,
-      detail: `${nonce.data.toLocaleString()} transactions sent from it.`,
+      detail: `${nonce.toLocaleString()} transactions sent from it.`,
     })
   }
 
@@ -116,5 +153,5 @@ export function useRecipientShield({ to, chainId, chainName, token, self, known,
     findings.push({ level: 'ok', title: "You've sent to this address before" })
   }
 
-  return { findings, loading: code.isLoading || nonce.isLoading }
+  return findings
 }

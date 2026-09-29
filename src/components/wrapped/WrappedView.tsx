@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { formatUnits, isAddress, type Address } from 'viem'
 import { normalize } from 'viem/ens'
 import { useChains, useConnection, useEnsAddress, useEnsName } from 'wagmi'
@@ -81,8 +81,18 @@ function buildSlides(s: WrappedStats, label: string, chainName: string, fees: st
   return slides
 }
 
-export function WrappedView({ target }: { target?: string }) {
+export function WrappedView({ target, embedded = false }: { target?: string; embedded?: boolean }) {
   const { address: connected } = useConnection()
+  // Embedded on the landing page, the story waits until it's on screen before it starts playing.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(!embedded)
+  useEffect(() => {
+    const el = rootRef.current
+    if (inView || !el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setInView(true), { threshold: 0.5 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [inView])
   const chains = useChains()
   const prices = usePrices()
   const [chainId, setChainId] = useState<number>(chains[0].id)
@@ -141,17 +151,19 @@ export function WrappedView({ target }: { target?: string }) {
     : ''
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <Sparkles className="text-primary size-6" /> Wallet Wrapped
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          The story of any wallet, from real on-chain data. Try yours, a friend’s, or vitalik.eth.
-        </p>
-      </div>
+    <div ref={rootRef} className="flex flex-col gap-6">
+      {!embedded && (
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+            <Sparkles className="text-primary size-6" /> Wallet Wrapped
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            The story of any wallet, from real on-chain data. Try yours, a friend’s, or vitalik.eth.
+          </p>
+        </div>
+      )}
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
+      <form onSubmit={onSubmit} className={cn('flex flex-col gap-3 sm:flex-row', embedded && 'hidden')}>
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -193,8 +205,22 @@ export function WrappedView({ target }: { target?: string }) {
       ) : !address ? (
         <p className="text-destructive p-10 text-center text-sm">Couldn’t find a wallet for “{query}”.</p>
       ) : wrapped.isLoading ? (
-        <div className="flex aspect-[4/5] max-h-[560px] w-full items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-950 via-violet-700 to-fuchsia-600 text-white">
-          <p className="animate-pulse text-lg font-medium">
+        <div
+          role="status"
+          className="mx-auto flex aspect-[4/5] w-full max-w-md flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950 via-violet-800 to-fuchsia-700 p-8 text-white shadow-2xl"
+        >
+          <div className="flex gap-1" aria-hidden>
+            {Array.from({ length: 7 }, (_, i) => (
+              <span key={i} className="h-1 flex-1 rounded-full bg-white/20" />
+            ))}
+          </div>
+          <div className="flex flex-col gap-3" aria-hidden>
+            <span className="skeleton-light h-3 w-32 rounded" />
+            <span className="skeleton-light h-10 w-4/5 rounded-lg" />
+            <span className="skeleton-light h-10 w-3/5 rounded-lg" />
+            <span className="skeleton-light mt-2 h-4 w-2/3 rounded" />
+          </div>
+          <p className="text-xs opacity-80">
             Reading {label}’s history on {chainName}…
           </p>
         </div>
@@ -238,7 +264,10 @@ export function WrappedView({ target }: { target?: string }) {
                     <span
                       key={slide}
                       className="story-fill block h-full bg-white"
-                      style={{ animationDuration: `${SLIDE_MS}ms`, animationPlayState: paused ? 'paused' : 'running' }}
+                      style={{
+                        animationDuration: `${SLIDE_MS}ms`,
+                        animationPlayState: paused || !inView ? 'paused' : 'running',
+                      }}
                       onAnimationEnd={() => setSlide((s) => Math.min(last, s + 1))}
                     />
                   ) : null}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Address } from 'viem'
 import { CircleCheck, CircleX, ChevronDown, Fish } from 'lucide-react'
 
+import { AddressDiff as Diff } from '@/components/AddressDiff'
 import { InfoTip } from '@/components/OnboardingTip'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Approval } from '@/lib/approvals'
@@ -15,24 +16,6 @@ const GRADE_COLOR: Record<string, string> = {
   C: 'text-amber-600 ring-amber-500/40',
   D: 'text-orange-600 ring-orange-500/40',
   F: 'text-red-600 ring-red-500/40',
-}
-
-/** Shows `fake` with the characters that differ from `real` highlighted. */
-function Diff({ fake, real }: { fake: string; real: string }) {
-  return (
-    <span className="font-mono text-xs break-all">
-      {[...fake].map((ch, i) => (
-        <span
-          key={i}
-          className={
-            ch.toLowerCase() !== real[i]?.toLowerCase() ? 'rounded-sm bg-red-500/20 text-red-700 dark:text-red-300' : ''
-          }
-        >
-          {ch}
-        </span>
-      ))}
-    </span>
-  )
 }
 
 export function HealthCard({

@@ -160,7 +160,7 @@ function App() {
             ) : route.view === 'watch' ? (
               <WatchView />
             ) : route.view === 'approvals' ? (
-              <ApprovalsView />
+              <ApprovalsView key={route.target ?? ''} target={route.target} />
             ) : route.view === 'pay' ? (
               <PayView key={route.params?.toString()} params={route.params} />
             ) : route.view === 'wrapped' ? (

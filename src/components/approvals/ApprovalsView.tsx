@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react'
-import { encodeFunctionData, erc20Abi, formatUnits, type Hash } from 'viem'
-import { useChains, useConnection, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
+import { encodeFunctionData, erc20Abi, formatUnits, isAddress, type Address, type Hash } from 'viem'
+import { normalize } from 'viem/ens'
+import {
+  useChains,
+  useConnection,
+  useEnsAddress,
+  useSwitchChain,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from 'wagmi'
+import { mainnet } from 'wagmi/chains'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   ExternalLink,
+  Eye,
   Info,
   Loader,
   RefreshCw,
@@ -23,11 +33,21 @@ import { OnboardingTip } from '@/components/OnboardingTip'
 import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { nftAbi, useApprovals, type Approval } from '@/lib/approvals'
 import { BLOCKSCOUT } from '@/lib/blockscout'
+import { navigate } from '@/lib/route'
 import { cn, formatAmount, shortenAddress } from '@/lib/utils'
 import type { ChainId } from '@/lib/wagmi'
 import { chainLabel } from '@/lib/chains'
+
+function safeNormalize(name: string) {
+  try {
+    return normalize(name)
+  } catch {
+    return undefined
+  }
+}
 
 const RISK_ICON = { danger: ShieldAlert, warning: TriangleAlert, info: Info }
 const RISK_CLASS = {
@@ -42,7 +62,18 @@ function amountText(a: Approval) {
   return formatAmount(Number(formatUnits(a.allowance ?? 0n, a.decimals ?? 18)))
 }
 
-function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer?: string }) {
+function Row({
+  a,
+  chainId,
+  explorer,
+  readOnly,
+}: {
+  a: Approval
+  chainId: ChainId
+  explorer?: string
+  /** Scanning someone else's wallet: show, don't offer to revoke. */
+  readOnly: boolean
+}) {
   const { address, chain } = useConnection()
   const switchChain = useSwitchChain()
   const write = useWriteContract()
@@ -127,7 +158,7 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
         )}
       </div>
       <div className="shrink-0">
-        {revoked ? (
+        {readOnly ? null : revoked ? (
           <span className="flex items-center gap-1 text-sm font-medium text-emerald-600">
             <ShieldCheck className="size-4" /> Revoked
           </span>
@@ -181,10 +212,20 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
   )
 }
 
-export function ApprovalsView() {
-  const { address, status } = useConnection()
+export function ApprovalsView({ target }: { target?: string }) {
+  const { address: connected } = useConnection()
   const chains = useChains()
   const [chainId, setChainId] = useState<ChainId>(chains[0].id)
+  const [input, setInput] = useState(target ?? '')
+
+  // Whose wallet: the route target (address or ENS name), else the connected wallet.
+  const query = target ?? connected ?? ''
+  const ensName = !isAddress(query) && query.includes('.') ? safeNormalize(query) : undefined
+  const ens = useEnsAddress({ name: ensName, chainId: mainnet.id, query: { enabled: !!ensName } })
+  const address: Address | undefined = isAddress(query) ? query : (ens.data ?? undefined)
+  const readOnly = !connected || !address || address.toLowerCase() !== connected.toLowerCase()
+  const label = ensName ?? (address ? shortenAddress(address) : '')
+
   const scan = useApprovals(address, chainId)
   const chain = chains.find((c) => c.id === chainId)
   const explorer = chain?.blockExplorers?.default.url
@@ -215,12 +256,67 @@ export function ApprovalsView() {
         </p>
       </OnboardingTip>
 
-      {status !== 'connected' || !address ? (
-        <div className="flex justify-center">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          const v = input.trim()
+          if (v) navigate({ view: 'approvals', target: v })
+        }}
+        className="flex flex-col gap-2 sm:flex-row"
+      >
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={
+            connected ? `${shortenAddress(connected)} (you) — or any address / name.eth` : 'Any address or name.eth'
+          }
+          className="font-mono"
+          spellCheck={false}
+          autoComplete="off"
+          aria-label="Wallet to check"
+        />
+        <Button type="submit">Check wallet</Button>
+      </form>
+
+      {!query ? (
+        <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed p-8 text-center">
+          <ShieldHalf className="text-muted-foreground size-8" aria-hidden />
+          <p className="max-w-md text-sm">
+            Enter any address to see its approvals and health score — read-only, nothing to sign. Or{' '}
+            <button
+              type="button"
+              className="font-medium underline underline-offset-4"
+              onClick={() => navigate({ view: 'approvals', target: 'vitalik.eth' })}
+            >
+              check vitalik.eth
+            </button>
+            .
+          </p>
           <ConnectCard />
         </div>
+      ) : ensName && ens.isLoading ? (
+        <div className="skeleton h-40 rounded-xl" role="status" aria-label={`Looking up ${ensName}`} />
+      ) : !address ? (
+        <p className="text-destructive rounded-xl border border-dashed p-8 text-center text-sm">
+          Couldn’t find a wallet for “{query}”.
+        </p>
       ) : (
         <>
+          {readOnly && (
+            <p className="bg-muted/60 flex flex-wrap items-center gap-x-2 rounded-lg px-3 py-2 text-xs">
+              <Eye className="size-3.5" aria-hidden /> Viewing <b className="font-mono">{label}</b> read-only.
+              {connected ? (
+                <button
+                  className="underline underline-offset-4"
+                  onClick={() => navigate({ view: 'approvals', target: connected })}
+                >
+                  Check your own wallet
+                </button>
+              ) : (
+                'Connect the wallet to revoke anything.'
+              )}
+            </p>
+          )}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="chip-row min-w-0 flex-1">
               {chains
@@ -264,12 +360,25 @@ export function ApprovalsView() {
             <CardContent>
               {scan.isError && scan.data && <StaleNote updatedAt={scan.dataUpdatedAt} onRetry={() => scan.refetch()} />}
               {scan.isLoading ? (
-                <p className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
-                  <Loader className="size-4 animate-spin" /> Scanning your approval history on {chain?.name}…
-                </p>
+                <div role="status" className="flex flex-col gap-4 py-2">
+                  <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                    <Loader className="size-4 animate-spin" /> Reading every approval {readOnly ? label : 'you'} ever
+                    granted on {chain?.name}, then checking which are still live…
+                  </p>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-start gap-4 border-t pt-4" aria-hidden>
+                      <div className="flex flex-1 flex-col gap-2">
+                        <span className="skeleton h-4 w-28 rounded" />
+                        <span className="skeleton h-3 w-56 max-w-full rounded" />
+                        <span className="skeleton h-3 w-40 rounded" />
+                      </div>
+                      <span className="skeleton h-8 w-20 rounded-md" />
+                    </div>
+                  ))}
+                </div>
               ) : scan.isError && !scan.data ? (
                 <LoadError
-                  what="your approval history"
+                  what={readOnly ? `${label}’s approval history` : 'your approval history'}
                   source={`the ${chain?.name ?? ''} explorer`}
                   onRetry={() => scan.refetch()}
                   retrying={scan.isFetching}
@@ -278,7 +387,9 @@ export function ApprovalsView() {
                 <p className="flex flex-col items-center gap-2 py-10 text-center text-sm">
                   <ShieldCheck className="size-8 text-emerald-600" />
                   <span className="font-medium">No active approvals on {chain?.name}.</span>
-                  <span className="text-muted-foreground">Nothing can spend your tokens without asking you first.</span>
+                  <span className="text-muted-foreground">
+                    Nothing can spend {readOnly ? 'this wallet’s' : 'your'} tokens without asking first.
+                  </span>
                 </p>
               ) : (
                 <>
@@ -295,12 +406,20 @@ export function ApprovalsView() {
                       {risky ? `${risky} need${risky === 1 ? 's' : ''} attention` : 'All look fine'}
                     </p>
                   </div>
-                  <div className="pt-4">
-                    <RevokeAll approvals={riskyList} chainId={chainId} />
-                  </div>
+                  {!readOnly && (
+                    <div className="pt-4">
+                      <RevokeAll approvals={riskyList} chainId={chainId} />
+                    </div>
+                  )}
                   <ul className="divide-y">
                     {approvals.map((a) => (
-                      <Row key={`${a.kind}:${a.token}:${a.spender}`} a={a} chainId={chainId} explorer={explorer} />
+                      <Row
+                        key={`${a.kind}:${a.token}:${a.spender}`}
+                        a={a}
+                        chainId={chainId}
+                        explorer={explorer}
+                        readOnly={readOnly}
+                      />
                     ))}
                   </ul>
                 </>

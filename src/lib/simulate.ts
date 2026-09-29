@@ -189,17 +189,29 @@ async function tokenInfo(chainId: number, addresses: Address[]): Promise<Map<str
   return out
 }
 
-export async function simulate(chainId: number, account: Address, calls: SimCall[]): Promise<Simulation> {
+export async function simulate(
+  chainId: number,
+  account: Address,
+  calls: SimCall[],
+  /** Pretend `account` holds this much native coin (used by the no-wallet demo). */
+  fundedWith?: bigint,
+): Promise<Simulation> {
   const client = clientFor(chainId)
   if (!client) return { status: 'unavailable', reason: 'Unsupported network' }
+  const overrides = fundedWith !== undefined ? [{ address: account, balance: fundedWith }] : undefined
 
   let engine: 'simulate' | 'estimate' = 'simulate'
   let gasUsed = 0n
   let raw: ReturnType<typeof fromLogs>
   try {
     const [block] = await client.simulateBlocks({
-      // viem's call type insists on `to`; the RPC accepts calls without it as deployments.
-      blocks: [{ calls: calls.map((c) => ({ ...c, account })) as { to: Address; data?: Hex; value?: bigint }[] }],
+      blocks: [
+        {
+          // viem's call type insists on `to`; the RPC accepts calls without it as deployments.
+          calls: calls.map((c) => ({ ...c, account })) as { to: Address; data?: Hex; value?: bigint }[],
+          stateOverrides: overrides,
+        },
+      ],
       traceTransfers: true,
     })
     const failed = block.calls.find((c) => c.status !== 'success')
@@ -230,7 +242,7 @@ export async function simulate(chainId: number, account: Address, calls: SimCall
     // eth_simulateV1 not supported (or failed): dry-run each call instead.
     engine = 'estimate'
     try {
-      for (const call of calls) gasUsed += await client.estimateGas({ account, ...call })
+      for (const call of calls) gasUsed += await client.estimateGas({ account, ...call, stateOverride: overrides })
     } catch (estimateError) {
       if (isRevert(estimateError)) return { status: 'revert', reason: reasonOf(estimateError) }
       return { status: 'unavailable', reason: reasonOf(estimateError) }
