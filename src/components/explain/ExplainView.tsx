@@ -68,7 +68,7 @@ export function ExplainView({ hash }: { hash?: string }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+        <h1 className="font-display flex items-center gap-2.5 text-3xl tracking-tight sm:text-4xl">
           <ScrollText className="text-primary size-6" /> Transaction explainer
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">

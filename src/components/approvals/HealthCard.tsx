@@ -5,17 +5,65 @@ import { CircleCheck, CircleX, ChevronDown, Fish } from 'lucide-react'
 import { AddressDiff as Diff } from '@/components/AddressDiff'
 import { InfoTip } from '@/components/OnboardingTip'
 import { Card, CardContent } from '@/components/ui/card'
+import { CountUp } from '@/components/wrapped/CountUp'
 import type { Approval } from '@/lib/approvals'
 import { navigate } from '@/lib/route'
 import { useWalletHealth } from '@/lib/useWalletHealth'
 import { cn } from '@/lib/utils'
 
 const GRADE_COLOR: Record<string, string> = {
-  A: 'text-emerald-600 ring-emerald-500/40',
-  B: 'text-lime-600 ring-lime-500/40',
-  C: 'text-amber-600 ring-amber-500/40',
-  D: 'text-orange-600 ring-orange-500/40',
-  F: 'text-red-600 ring-red-500/40',
+  A: 'text-emerald-600 dark:text-emerald-400',
+  B: 'text-lime-600 dark:text-lime-400',
+  C: 'text-amber-600 dark:text-amber-400',
+  D: 'text-orange-600 dark:text-orange-400',
+  F: 'text-red-600 dark:text-red-400',
+}
+
+// A 270° arc, open at the bottom: the score sweeps in from zero when the card appears.
+const R = 50
+const CIRCUMFERENCE = 2 * Math.PI * R
+const ARC = CIRCUMFERENCE * 0.75
+
+function Gauge({ score, grade }: { score: number; grade: string }) {
+  return (
+    <div
+      role="img"
+      aria-label={`Health score ${score} out of 100, grade ${grade}`}
+      className={cn('relative size-32 shrink-0', GRADE_COLOR[grade])}
+    >
+      <svg viewBox="0 0 120 120" className="size-full rotate-[135deg]" aria-hidden>
+        <circle
+          cx="60"
+          cy="60"
+          r={R}
+          fill="none"
+          stroke="currentColor"
+          strokeOpacity={0.15}
+          strokeWidth={9}
+          strokeLinecap="round"
+          strokeDasharray={`${ARC} ${CIRCUMFERENCE}`}
+        />
+        <circle
+          key={score}
+          className="gauge-sweep"
+          cx="60"
+          cy="60"
+          r={R}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={9}
+          strokeLinecap="round"
+          strokeDasharray={`${(ARC * score) / 100} ${CIRCUMFERENCE}`}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center" aria-hidden>
+        <span className="font-display text-foreground text-5xl leading-none tabular-nums">
+          <CountUp key={score} text={String(score)} duration={1100} />
+        </span>
+        <span className="mt-1 text-xs font-semibold tracking-wider uppercase">grade {grade}</span>
+      </div>
+    </div>
+  )
 }
 
 export function HealthCard({
@@ -37,16 +85,7 @@ export function HealthCard({
     <Card>
       <CardContent className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center gap-5">
-          <div
-            className={cn(
-              'flex size-24 shrink-0 flex-col items-center justify-center rounded-full ring-8',
-              GRADE_COLOR[health.grade],
-            )}
-            aria-label={`Health score ${health.score} out of 100, grade ${health.grade}`}
-          >
-            <span className="text-3xl leading-none font-extrabold">{health.score}</span>
-            <span className="text-xs font-semibold">grade {health.grade}</span>
-          </div>
+          <Gauge score={health.score} grade={health.grade} />
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-lg font-semibold">
               Wallet health on {chainName}

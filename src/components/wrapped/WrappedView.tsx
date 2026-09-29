@@ -154,7 +154,7 @@ export function WrappedView({ target, embedded = false }: { target?: string; emb
     <div ref={rootRef} className="flex flex-col gap-6">
       {!embedded && (
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <h1 className="font-display flex items-center gap-2.5 text-3xl tracking-tight sm:text-4xl">
             <Sparkles className="text-primary size-6" /> Wallet Wrapped
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">

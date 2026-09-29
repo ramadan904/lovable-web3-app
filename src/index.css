@@ -49,6 +49,8 @@
 }
 
 @theme inline {
+  /* Display serif for the moments that carry weight: headlines and verdicts. */
+  --font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -100,6 +102,23 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-rise {
+    animation: none;
+  }
+}
+
+/* The health gauge sweeps from empty to its value (a `from`-only keyframe animates to the element's own dasharray). */
+@keyframes gauge-sweep {
+  from {
+    stroke-dasharray: 0 400;
+  }
+}
+
+.gauge-sweep {
+  animation: gauge-sweep 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-sweep {
     animation: none;
   }
 }

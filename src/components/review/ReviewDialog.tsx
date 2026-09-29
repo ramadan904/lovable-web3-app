@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { Address } from 'viem'
 import { useChains, useEstimateFeesPerGas } from 'wagmi'
 import { ScanEye, X } from 'lucide-react'
 
 import { ShieldPanel } from '@/components/dashboard/ShieldPanel'
+import { HoldButton } from '@/components/HoldButton'
 import { TxPreview } from '@/components/review/TxPreview'
 import { Button } from '@/components/ui/button'
 import { nativeUsd, usePrices } from '@/lib/prices'
@@ -56,13 +57,6 @@ export function ReviewDialog({
   const fees = useEstimateFeesPerGas({ chainId: chainId as (typeof chains)[number]['id'], query: { enabled: open } })
   const prices = usePrices()
   const cancelRef = useRef<HTMLButtonElement>(null)
-  // A warning needs an explicit "yes" each time the review opens.
-  const [override, setOverride] = useState(false)
-  const [wasOpen, setWasOpen] = useState(open)
-  if (open !== wasOpen) {
-    setWasOpen(open)
-    setOverride(false)
-  }
 
   useEffect(() => {
     if (!open) return
@@ -83,19 +77,24 @@ export function ReviewDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
       onMouseDown={(e) => e.target === e.currentTarget && !pending && onClose()}
     >
+      {/* The real threshold: always the same dark, quiet surface as the landing-page ritual, in either theme. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="review-title"
-        className="bg-card flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border shadow-2xl sm:rounded-2xl"
+        className="dark text-foreground animate-rise relative isolate flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[#08080c] shadow-2xl ring-1 ring-white/10 sm:rounded-3xl"
       >
-        <div className="flex items-center justify-between border-b px-5 py-3">
-          <h2 id="review-title" className="flex items-center gap-2 font-semibold">
-            <ScanEye className="text-primary size-5" /> {title}
-          </h2>
+        <div aria-hidden className="threshold-glow pointer-events-none absolute inset-0 -z-10" />
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
+          <div>
+            <p className="font-mono text-[10px] tracking-[0.25em] text-zinc-500 uppercase">The threshold</p>
+            <h2 id="review-title" className="flex items-center gap-2 font-semibold">
+              <ScanEye className="size-4 text-zinc-400" /> {title}
+            </h2>
+          </div>
           <Button variant="ghost" size="icon" onClick={onClose} disabled={pending} aria-label="Close">
             <X />
           </Button>
@@ -118,31 +117,32 @@ export function ReviewDialog({
           />
           {children}
           {needsOverride && (
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5"
-                checked={override}
-                onChange={(e) => setOverride(e.target.checked)}
-              />
+            <p className="text-muted-foreground text-xs">
               {reverts
-                ? 'I understand this will probably fail and still costs a network fee.'
-                : 'I understand this moves more than I asked for, and I still want to sign it.'}
-            </label>
+                ? 'This will probably fail and still costs a network fee.'
+                : 'This moves more than you asked for.'}{' '}
+              To sign it anyway, press and hold the button below — deliberately, not by reflex.
+            </p>
           )}
           {error && <p className="text-destructive text-sm break-words">{error}</p>}
         </div>
-        <div className="flex flex-col-reverse gap-2 border-t px-5 py-3 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 border-t border-white/10 px-5 py-3 sm:flex-row sm:justify-end">
           <Button ref={cancelRef} variant="outline" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
-          <Button
-            variant={needsOverride || danger ? 'destructive' : 'default'}
-            onClick={onConfirm}
-            disabled={pending || sim.isLoading || (needsOverride && !override)}
-          >
-            {pending ? 'Confirm in your wallet…' : needsOverride ? `${confirmLabel} anyway` : confirmLabel}
-          </Button>
+          {needsOverride && !pending ? (
+            <HoldButton onComplete={onConfirm} disabled={sim.isLoading}>
+              Hold to {confirmLabel.toLowerCase()} anyway
+            </HoldButton>
+          ) : (
+            <Button
+              variant={danger ? 'destructive' : 'default'}
+              onClick={onConfirm}
+              disabled={pending || sim.isLoading}
+            >
+              {pending ? 'Confirm in your wallet…' : confirmLabel}
+            </Button>
+          )}
         </div>
       </div>
     </div>,

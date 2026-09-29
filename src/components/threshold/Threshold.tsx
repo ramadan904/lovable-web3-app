@@ -5,6 +5,7 @@ import { base } from 'wagmi/chains'
 import { ArrowRight, Check, Loader, OctagonX, RotateCcw, TriangleAlert } from 'lucide-react'
 
 import { AddressDiff } from '@/components/AddressDiff'
+import { HoldButton } from '@/components/HoldButton'
 import { useActivity } from '@/lib/activity'
 import { chainLabel } from '@/lib/chains'
 import { useContacts } from '@/lib/contacts'
@@ -176,7 +177,7 @@ export function Threshold() {
       <div aria-hidden className="threshold-glow pointer-events-none absolute inset-0 -z-10" />
       <div className="flex flex-col gap-1">
         <p className="font-mono text-[11px] tracking-[0.25em] text-zinc-500 uppercase">01 · The threshold</p>
-        <h2 id="threshold-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h2 id="threshold-title" className="font-display text-3xl leading-tight tracking-tight sm:text-4xl">
           Try to get a bad transaction past it.
         </h2>
         <p className="max-w-2xl text-sm text-zinc-400">
@@ -341,7 +342,12 @@ export function Threshold() {
           )}
         >
           <p className="text-[11px] tracking-[0.3em] text-zinc-500 uppercase">Verdict</p>
-          <p className={cn('mt-1 text-3xl font-semibold tracking-tight sm:text-4xl', TONE_TEXT[verdict.tone])}>
+          <p
+            className={cn(
+              'font-display mt-1 text-4xl leading-tight tracking-tight sm:text-5xl',
+              TONE_TEXT[verdict.tone],
+            )}
+          >
             {verdict.title}
           </p>
           {verdict.reasons.length > 0 ? (
@@ -375,18 +381,15 @@ export function Threshold() {
           )}
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            {connected && !asDemo && verdict.to ? (
+            {connected && !asDemo && verdict.to && verdict.tone === 'stop' ? (
+              <HoldButton onComplete={continueToSign}>Hold to continue anyway</HoldButton>
+            ) : connected && !asDemo && verdict.to ? (
               <button
                 type="button"
                 onClick={continueToSign}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition',
-                  verdict.tone === 'stop'
-                    ? 'border border-rose-400/50 text-rose-300 hover:bg-rose-500/10'
-                    : 'bg-white text-zinc-900 hover:bg-zinc-200',
-                )}
+                className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-200"
               >
-                {verdict.tone === 'stop' ? 'Continue anyway — review in full' : 'Continue to review & sign'}
+                Continue to review & sign
                 <ArrowRight className="size-4" />
               </button>
             ) : (

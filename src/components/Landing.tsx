@@ -42,7 +42,7 @@ function SectionHead({
       <p className="text-muted-foreground font-mono text-[11px] tracking-[0.25em] uppercase">
         {n} · {kicker}
       </p>
-      <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+      <h2 className="font-display text-4xl leading-[1.05] tracking-tight text-balance sm:text-5xl">{title}</h2>
       {children && <div className="text-muted-foreground max-w-xl text-base">{children}</div>}
     </div>
   )
@@ -173,8 +173,8 @@ export function Landing() {
             <p className="bg-background/70 text-muted-foreground w-fit rounded-full border px-3 py-1 text-xs font-medium backdrop-blur">
               Ethereum · Base · Arbitrum · Optimism · Polygon
             </p>
-            <h1 className="text-4xl font-extrabold tracking-tight text-balance sm:text-6xl">
-              The pause <span className="text-brand">before you sign.</span>
+            <h1 className="font-display text-5xl leading-[0.98] tracking-tight text-balance sm:text-7xl">
+              The pause <em className="text-brand pr-1">before you sign.</em>
             </h1>
             <p className="text-muted-foreground max-w-xl text-lg text-pretty">
               Every transaction is permanent. Wallet Bodyguard stands between you and the confirm button — it checks who

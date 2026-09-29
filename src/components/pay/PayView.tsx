@@ -67,7 +67,10 @@ export function PayView({ params }: { params?: URLSearchParams }) {
               Switch to {target.name} to pay
             </Button>
           )}
-          <SendCard title="Review & pay" initial={{ to: request.to, amount: request.amount, token: request.token, chainId: request.chainId }} />
+          <SendCard
+            title="Review & pay"
+            initial={{ to: request.to, amount: request.amount, token: request.token, chainId: request.chainId }}
+          />
         </>
       )}
     </div>
