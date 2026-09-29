@@ -12,7 +12,7 @@ import {
 } from 'wagmi'
 import { readContract } from 'wagmi/actions'
 import { sepolia } from 'wagmi/chains'
-import { ExternalLink, FileCode2, Lock, LockOpen, PiggyBank, Plus, TriangleAlert, X } from 'lucide-react'
+import { ExternalLink, FileCode2, Lock, LockOpen, PiggyBank, Plus, ShieldAlert, TriangleAlert, X } from 'lucide-react'
 
 import { ConnectCard } from '@/components/ConnectCard'
 import { ReviewDialog } from '@/components/review/ReviewDialog'
@@ -63,6 +63,8 @@ function CreateLock({ owner }: { owner: Address }) {
   const receipt = useWaitForTransactionReceipt({ hash, chainId })
   const now = useNow(30_000)
 
+  // The lock holds the native coin and the UI speaks ETH, so only ETH-native networks are offered.
+  const lockChains = chains.filter((c) => c.nativeCurrency.symbol === 'ETH')
   const target = chains.find((c) => c.id === chainId)!
   const unlock = date ? Math.floor(new Date(`${date}T09:00`).getTime() / 1000) : undefined
   const unlockOk = unlock !== undefined && unlock > now + 60 && unlock < now + MAX_LOCK_SECONDS - 60
@@ -134,7 +136,7 @@ function CreateLock({ owner }: { owner: Address }) {
       <CardContent>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
-            {chains.map((c) => (
+            {lockChains.map((c) => (
               <Button
                 key={c.id}
                 type="button"
@@ -268,7 +270,15 @@ function CreateLock({ owner }: { owner: Address }) {
             confirmLabel="Create in wallet"
             pending={deploy.isPending}
             error={deploy.error ? errText(deploy.error) : undefined}
-          />
+          >
+            <p className="flex items-start gap-2 rounded-md border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-800 dark:text-red-300">
+              <ShieldAlert className="mt-px size-4 shrink-0" />
+              <span>
+                <strong>Unaudited contract.</strong> A bug could lock these funds forever. Only lock what you can afford
+                to lose.
+              </span>
+            </p>
+          </ReviewDialog>
         )}
       </CardContent>
     </Card>
@@ -319,7 +329,8 @@ function VaultCard({ v }: { v: Vault }) {
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div className="grid gap-1.5">
           <CardTitle className="flex items-center gap-2">
-            {unlocked ? <LockOpen className="size-5 text-emerald-600" /> : <Lock className="size-5" />} {v.name}
+            {unlocked ? <LockOpen className="size-5 text-emerald-600" /> : <Lock className="size-5" />} {v.name}{' '}
+            <UnauditedBadge />
           </CardTitle>
           <CardDescription>
             {c?.name ?? `Chain ${v.chainId}`} ·{' '}
@@ -491,11 +502,13 @@ function AddExisting({ owner }: { owner: Address }) {
           className="border-input h-9 rounded-md border bg-transparent px-2"
           aria-label="Network"
         >
-          {chains.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+          {chains
+            .filter((c) => c.nativeCurrency.symbol === 'ETH')
+            .map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
         </select>
         <Input
           value={address}
@@ -513,6 +526,41 @@ function AddExisting({ owner }: { owner: Address }) {
   )
 }
 
+function UnauditedBadge() {
+  return (
+    <span className="rounded-full border border-red-500/40 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-red-700 uppercase dark:text-red-400">
+      Unaudited
+    </span>
+  )
+}
+
+/** Shown on every visit, above everything else on the page. */
+function UnauditedWarning() {
+  return (
+    <div
+      role="alert"
+      className="flex gap-3 rounded-xl border-2 border-red-500/60 bg-red-500/10 p-4 text-sm text-red-900 dark:text-red-200"
+    >
+      <ShieldAlert className="mt-0.5 size-6 shrink-0 text-red-600" />
+      <div className="flex flex-col gap-1.5">
+        <p className="text-base font-bold">Savings Lock is unaudited — use at your own risk</p>
+        <p>
+          It’s a small open-source contract written for this app. It has automated tests, but{' '}
+          <strong>no professional security firm has reviewed it</strong>. A bug could lock your money forever, and
+          nobody — including us — could get it back.
+        </p>
+        <p>
+          Only lock amounts you can afford to lose, and try it on Sepolia first.{' '}
+          <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-4">
+            Read the contract source
+          </a>
+          .
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function LockView() {
   const { address, status } = useConnection()
   const vaults = useVaults(address)
@@ -520,14 +568,15 @@ export function LockView() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <PiggyBank className="text-primary size-6" /> Savings Lock
+        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
+          <PiggyBank className="text-primary size-6" /> Savings Lock <UnauditedBadge />
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
           A time-locked piggy bank on the blockchain. Great for “don’t touch this until…” savings — your own contract,
           no middleman, no fees beyond gas.
         </p>
       </div>
+      <UnauditedWarning />
       {status !== 'connected' || !address ? (
         <div className="flex justify-center">
           <ConnectCard />

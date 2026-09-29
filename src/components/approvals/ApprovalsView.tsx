@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 
+import { ExportReport } from '@/components/approvals/ExportReport'
 import { HealthCard } from '@/components/approvals/HealthCard'
 import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
@@ -221,12 +222,20 @@ export function ApprovalsView() {
                   {c.name}
                 </Button>
               ))}
+            <div className="ml-auto" />
+            <ExportReport
+              address={address}
+              chainId={chainId}
+              chainName={chain?.name ?? `Chain ${chainId}`}
+              explorer={explorer}
+              approvals={scan.data?.approvals}
+              approvalsFromHoldings={scan.data?.method === 'holdings'}
+            />
             <Button
               size="icon"
               variant="ghost"
               aria-label="Rescan"
               onClick={() => scan.refetch()}
-              className="ml-auto"
               disabled={scan.isFetching}
             >
               <RefreshCw className={scan.isFetching ? 'animate-spin' : undefined} />

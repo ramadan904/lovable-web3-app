@@ -1,18 +1,12 @@
-import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import type { Address } from 'viem'
 import { CircleCheck, CircleX, ChevronDown, Fish } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
-import { useActivity } from '@/lib/activity'
 import type { Approval } from '@/lib/approvals'
-import { BLOCKSCOUT } from '@/lib/blockscout'
-import { useContacts } from '@/lib/contacts'
-import { detectPoisoning, scoreHealth, type BsTransfer } from '@/lib/poisoning'
 import { navigate } from '@/lib/route'
-import { useHoldings } from '@/lib/useHoldings'
+import { useWalletHealth } from '@/lib/useWalletHealth'
 import { cn } from '@/lib/utils'
-import { fetchWithRetry, HttpError } from '@/lib/net'
 
 const GRADE_COLOR: Record<string, string> = {
   A: 'text-emerald-600 ring-emerald-500/40',
@@ -52,43 +46,8 @@ export function HealthCard({
   approvals: Approval[] | undefined
 }) {
   const [open, setOpen] = useState(false)
-  const contacts = useContacts()
-  const history = useActivity(address)
-  const holdings = useHoldings(address, chainId)
-  const transfers = useQuery({
-    queryKey: ['token-transfers', chainId, address.toLowerCase()],
-    enabled: !!BLOCKSCOUT[chainId],
-    staleTime: 2 * 60_000,
-    retry: 1,
-    queryFn: async () => {
-      const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/token-transfers?type=ERC-20`)
-      if (res.status === 404) return [] as BsTransfer[]
-      if (!res.ok) throw new HttpError(res, 'Explorer request')
-      return ((await res.json()) as { items?: BsTransfer[] }).items ?? []
-    },
-  })
-
-  const attempts = useMemo(
-    () =>
-      detectPoisoning(address, transfers.data ?? [], [
-        ...contacts.map((c) => c.address),
-        ...history.filter((h) => h.chainId === chainId).map((h) => h.to),
-      ]),
-    [address, transfers.data, contacts, history, chainId],
-  )
-
-  const ready = approvals !== undefined && !transfers.isLoading && !holdings.isLoading
-  if (!ready) return null
-
-  const health = scoreHealth({
-    dangerApprovals: approvals.filter((a) => a.risks.some((r) => r.level === 'danger')).length,
-    warningApprovals: approvals.filter(
-      (a) => !a.risks.some((r) => r.level === 'danger') && a.risks.some((r) => r.level === 'warning'),
-    ).length,
-    poisonAttempts: attempts.length,
-    spamTokens: (holdings.data ?? []).filter((h) => h.spam).length,
-  })
-  const partial = transfers.isError || holdings.isError
+  const { health, attempts, partial } = useWalletHealth(address, chainId, approvals)
+  if (!health) return null
 
   return (
     <Card>
