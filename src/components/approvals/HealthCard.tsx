@@ -12,6 +12,7 @@ import { detectPoisoning, scoreHealth, type BsTransfer } from '@/lib/poisoning'
 import { navigate } from '@/lib/route'
 import { useHoldings } from '@/lib/useHoldings'
 import { cn } from '@/lib/utils'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 const GRADE_COLOR: Record<string, string> = {
   A: 'text-emerald-600 ring-emerald-500/40',
@@ -60,9 +61,9 @@ export function HealthCard({
     staleTime: 2 * 60_000,
     retry: 1,
     queryFn: async () => {
-      const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/token-transfers?type=ERC-20`)
+      const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/token-transfers?type=ERC-20`)
       if (res.status === 404) return [] as BsTransfer[]
-      if (!res.ok) throw new Error(`Explorer error ${res.status}`)
+      if (!res.ok) throw new HttpError(res, 'Explorer request')
       return ((await res.json()) as { items?: BsTransfer[] }).items ?? []
     },
   })

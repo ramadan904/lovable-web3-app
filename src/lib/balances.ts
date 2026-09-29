@@ -12,7 +12,13 @@ export type ChainBalances = {
   chainId: number
   eth?: bigint
   usdc?: bigint
+  /** The chain's RPC failed on the last refresh; values (if any) are the last ones that loaded. */
+  failed: boolean
 }
+
+// Last balances that loaded per address + chain, so one flaky RPC response
+// doesn't blank a row that was fine a moment ago.
+const lastGood = new Map<string, { eth?: bigint; usdc?: bigint }>()
 
 /** ETH and USDC balances for `address` on every configured chain. */
 export function useBalances(address: Address | undefined) {
@@ -40,11 +46,16 @@ export function useBalances(address: Address | undefined) {
   const balances: ChainBalances[] = chains.map((chain, i) => {
     const eth = query.data?.[i * 2]
     const usdc = query.data?.[i * 2 + 1]
-    return {
-      chainId: chain.id,
-      eth: eth?.status === 'success' ? (eth.result as bigint) : undefined,
-      usdc: usdc?.status === 'success' ? (usdc.result as bigint) : undefined,
+    const key = `${address?.toLowerCase()}:${chain.id}`
+    const prev = lastGood.get(key)
+    const next = {
+      eth: eth?.status === 'success' ? (eth.result as bigint) : prev?.eth,
+      usdc: usdc?.status === 'success' ? (usdc.result as bigint) : prev?.usdc,
     }
+    if (eth?.status === 'success' || usdc?.status === 'success') lastGood.set(key, next)
+    // The USDC call legitimately fails where the token isn't deployed, so only ETH decides reachability.
+    const failed = query.isError || eth?.status === 'failure'
+    return { chainId: chain.id, ...next, failed }
   })
 
   return { ...query, balances }

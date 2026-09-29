@@ -5,6 +5,7 @@ import { useChains, useConnection, useEnsAddress, useEnsName } from 'wagmi'
 import { mainnet } from 'wagmi/chains'
 import { ChevronLeft, ChevronRight, Download, Share2, Sparkles } from 'lucide-react'
 
+import { LoadError } from '@/components/LoadError'
 import { CountUp } from '@/components/wrapped/CountUp'
 import { drawShareCard } from '@/components/wrapped/shareCard'
 import { Button } from '@/components/ui/button'
@@ -192,10 +193,14 @@ export function WrappedView({ target }: { target?: string }) {
             Reading {label}’s history on {chainName}…
           </p>
         </div>
-      ) : wrapped.isError || !current ? (
-        <p className="text-destructive p-10 text-center text-sm">
-          Couldn’t load history from the {chainName} explorer right now. Try again in a minute.
-        </p>
+      ) : !current ? (
+        <LoadError
+          what={`${label}’s history`}
+          source={`the ${chainName} explorer`}
+          onRetry={() => wrapped.refetch()}
+          retrying={wrapped.isFetching}
+          className="p-10"
+        />
       ) : (
         <div className="mx-auto flex w-full max-w-md flex-col gap-4">
           <div

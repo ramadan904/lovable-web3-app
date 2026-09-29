@@ -21,13 +21,14 @@ import { explainTx, type BsTxDetail } from '@/lib/explain'
 import { formatFiat, usePrices } from '@/lib/prices'
 import { navigate } from '@/lib/route'
 import { cn, formatAmount } from '@/lib/utils'
+import { fetchWithRetry } from '@/lib/net'
 
 const HASH = /^0x[0-9a-fA-F]{64}$/
 
 /** Looks the hash up on every supported explorer and returns the first match. */
 async function findTx(hash: string) {
   const attempts = Object.entries(BLOCKSCOUT).map(async ([chainId, base]) => {
-    const res = await fetch(`${base}/api/v2/transactions/${hash}`)
+    const res = await fetchWithRetry(`${base}/api/v2/transactions/${hash}`)
     if (!res.ok) throw new Error(String(res.status))
     const tx = (await res.json()) as BsTxDetail
     if (!tx?.hash) throw new Error('not found')

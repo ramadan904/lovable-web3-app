@@ -1,6 +1,6 @@
 import type { Address } from 'viem'
 import { useChains } from 'wagmi'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, WifiOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,9 +13,7 @@ function Cell({ amount, usd, loading }: { amount?: number; usd?: number; loading
   return (
     <div className="flex flex-col items-end">
       <span>{formatAmount(amount)}</span>
-      {usd !== undefined && amount > 0 && (
-        <span className="text-muted-foreground text-xs">{formatFiat(usd)}</span>
-      )}
+      {usd !== undefined && amount > 0 && <span className="text-muted-foreground text-xs">{formatFiat(usd)}</span>}
     </div>
   )
 }
@@ -35,6 +33,7 @@ export function Portfolio({ address }: { address: Address }) {
       }, 0)
     : undefined
   const anyLoaded = balances.some((b) => b.eth !== undefined || b.usdc !== undefined)
+  const unreachable = chains.filter((c) => balances.find((b) => b.chainId === c.id)?.failed).map((c) => c.name)
 
   return (
     <Card className="md:col-span-2">
@@ -44,10 +43,14 @@ export function Portfolio({ address }: { address: Address }) {
           <CardTitle className="text-3xl tabular-nums">
             {total !== undefined && anyLoaded ? formatFiat(total) : isLoading || prices.isLoading ? '…' : '—'}
           </CardTitle>
-          {p && (
-            <p className="text-muted-foreground text-xs">
-              1 ETH = {formatFiat(p.eth)} · prices from CoinGecko
-            </p>
+          {p ? (
+            <p className="text-muted-foreground text-xs">1 ETH = {formatFiat(p.eth)} · prices from CoinGecko</p>
+          ) : (
+            prices.isError && (
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Prices are unavailable right now — balances are still accurate.
+              </p>
+            )
           )}
         </div>
         <Button
@@ -63,6 +66,13 @@ export function Portfolio({ address }: { address: Address }) {
         </Button>
       </CardHeader>
       <CardContent>
+        {unreachable.length > 0 && (
+          <p role="status" className="mb-3 flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400">
+            <WifiOff className="mt-px size-3.5 shrink-0" aria-hidden />
+            Couldn’t reach {unreachable.join(', ')} just now — showing the last known balance where there is one. It
+            retries automatically.
+          </p>
+        )}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -89,10 +99,18 @@ export function Portfolio({ address }: { address: Address }) {
                       )}
                     </td>
                     <td className="py-3 text-right tabular-nums">
-                      <Cell amount={eth} usd={priced && eth !== undefined ? eth * p.eth : undefined} loading={isLoading} />
+                      <Cell
+                        amount={eth}
+                        usd={priced && eth !== undefined ? eth * p.eth : undefined}
+                        loading={isLoading}
+                      />
                     </td>
                     <td className="py-3 text-right tabular-nums">
-                      <Cell amount={usdc} usd={priced && usdc !== undefined ? usdc * p.usdc : undefined} loading={isLoading} />
+                      <Cell
+                        amount={usdc}
+                        usd={priced && usdc !== undefined ? usdc * p.usdc : undefined}
+                        loading={isLoading}
+                      />
                     </td>
                   </tr>
                 )

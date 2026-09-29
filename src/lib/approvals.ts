@@ -4,6 +4,7 @@ import { readContracts } from 'wagmi/actions'
 
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { config, type ChainId } from '@/lib/wagmi'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 // keccak256("Approval(address,address,uint256)") and keccak256("ApprovalForAll(address,address,bool)")
 const APPROVAL = '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925'
@@ -57,8 +58,8 @@ async function getLogs(base: string, topic0: string, owner: Address): Promise<Lo
     topic1: pad(owner.toLowerCase() as Address),
     topic0_1_opr: 'and',
   })
-  const res = await fetch(`${base}/api?${params}`)
-  if (!res.ok) throw new Error(`Explorer logs request failed (${res.status})`)
+  const res = await fetchWithRetry(`${base}/api?${params}`)
+  if (!res.ok) throw new HttpError(res, 'Explorer logs request')
   const body = (await res.json()) as LogsResponse
   if (Array.isArray(body.result)) return body.result
   if (body.message?.toLowerCase().includes('no logs')) return []
@@ -95,8 +96,8 @@ async function candidatesFromLogs(base: string, owner: Address) {
 /** Fallback when log search is unavailable: tokens you hold × contracts you've called. */
 async function candidatesFromHoldings(base: string, owner: Address): Promise<Candidate[]> {
   const [tokens, txs] = await Promise.all([
-    fetch(`${base}/api/v2/addresses/${owner}/token-balances`).then((r) => (r.ok ? r.json() : [])),
-    fetch(`${base}/api/v2/addresses/${owner}/transactions`).then((r) => (r.ok ? r.json() : { items: [] })),
+    fetchWithRetry(`${base}/api/v2/addresses/${owner}/token-balances`).then((r) => (r.ok ? r.json() : [])),
+    fetchWithRetry(`${base}/api/v2/addresses/${owner}/transactions`).then((r) => (r.ok ? r.json() : { items: [] })),
   ])
   const tokenAddrs = (tokens as { token?: { address_hash?: string; address?: string; type?: string } }[])
     .filter((t) => t.token?.type === 'ERC-20')
@@ -119,7 +120,7 @@ type SpenderInfo = { name?: string | null; is_contract?: boolean; is_verified?: 
 
 async function spenderInfo(base: string, spender: Address): Promise<SpenderInfo> {
   try {
-    const res = await fetch(`${base}/api/v2/addresses/${spender}`)
+    const res = await fetchWithRetry(`${base}/api/v2/addresses/${spender}`)
     return res.ok ? ((await res.json()) as SpenderInfo) : {}
   } catch {
     return {}

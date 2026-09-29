@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { computeWrapped, type BsTx, type Counters } from '@/lib/wrapped'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 // Free public explorer APIs (no key needed).
 export const BLOCKSCOUT: Record<number, string> = {
@@ -12,9 +13,9 @@ export const BLOCKSCOUT: Record<number, string> = {
 type Page = { items?: BsTx[]; next_page_params?: Record<string, string | number> | null }
 
 async function get<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: { accept: 'application/json' } })
+  const res = await fetchWithRetry(url, { headers: { accept: 'application/json' } })
   if (res.status === 404) return {} as T // address never seen on this chain
-  if (!res.ok) throw new Error(`Explorer request failed (${res.status})`)
+  if (!res.ok) throw new HttpError(res, 'Explorer request')
   return res.json() as Promise<T>
 }
 

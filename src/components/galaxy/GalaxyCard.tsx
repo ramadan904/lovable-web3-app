@@ -5,11 +5,13 @@ import { useChains } from 'wagmi'
 import { List, Orbit } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { buildGalaxy, layoutGalaxy, type OrbitType } from '@/lib/galaxy'
 import { navigate } from '@/lib/route'
 import type { BsTx } from '@/lib/wrapped'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 const SIZE = 600
 const TYPES: { type: OrbitType; label: string; varName: string }[] = [
@@ -47,9 +49,9 @@ async function fetchTxs(chainId: number, address: string) {
   const items: BsTx[] = []
   let qs = ''
   for (let page = 0; page < 2; page++) {
-    const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions${qs}`)
+    const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions${qs}`)
     if (res.status === 404) break
-    if (!res.ok) throw new Error(`Explorer error ${res.status}`)
+    if (!res.ok) throw new HttpError(res, 'Explorer request')
     const body = (await res.json()) as { items?: BsTx[]; next_page_params?: Record<string, string | number> | null }
     items.push(...(body.items ?? []))
     if (!body.next_page_params) break
@@ -155,10 +157,11 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
           ))}
         </ul>
 
+        {txs.isError && txs.data && <StaleNote updatedAt={txs.dataUpdatedAt} onRetry={() => txs.refetch()} />}
         {txs.isLoading ? (
           <p className="text-muted-foreground py-16 text-center text-sm">Mapping the galaxy…</p>
-        ) : txs.isError ? (
-          <p className="text-destructive py-16 text-center text-sm">Couldn’t load transactions from the explorer.</p>
+        ) : txs.isError && !txs.data ? (
+          <LoadError what="transactions" onRetry={() => txs.refetch()} retrying={txs.isFetching} className="py-16" />
         ) : nodes.length === 0 ? (
           <p className="text-muted-foreground py-16 text-center text-sm">
             An empty galaxy on {chain?.name} — no transactions yet.
@@ -215,17 +218,19 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
                   style={{ animationDelay: `${s.d}s` }}
                 />
               ))}
-              {[0.17, 0.26, 0.35, 0.44].map((f) => SIZE * f).map((r) => (
-                <circle
-                  key={r}
-                  cx={SIZE / 2}
-                  cy={SIZE / 2}
-                  r={r}
-                  fill="none"
-                  stroke="var(--viz-orbit)"
-                  strokeWidth={1}
-                />
-              ))}
+              {[0.17, 0.26, 0.35, 0.44]
+                .map((f) => SIZE * f)
+                .map((r) => (
+                  <circle
+                    key={r}
+                    cx={SIZE / 2}
+                    cy={SIZE / 2}
+                    r={r}
+                    fill="none"
+                    stroke="var(--viz-orbit)"
+                    strokeWidth={1}
+                  />
+                ))}
               <circle
                 cx={SIZE / 2}
                 cy={SIZE / 2}
@@ -295,9 +300,11 @@ export function GalaxyCard({ address, label }: { address: Address; label?: strin
             )}
           </div>
         )}
-        <p className="text-muted-foreground text-xs">
-          Based on the latest {txs.data?.length ?? 0} transactions on {chain?.name}.
-        </p>
+        {txs.data && (
+          <p className="text-muted-foreground text-xs">
+            Based on the latest {txs.data.length} transactions on {chain?.name}.
+          </p>
+        )}
       </CardContent>
     </Card>
   )

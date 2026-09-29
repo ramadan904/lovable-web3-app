@@ -17,6 +17,7 @@ import { HealthCard } from '@/components/approvals/HealthCard'
 import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { LoadError, StaleNote } from '@/components/LoadError'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { nftAbi, useApprovals, type Approval } from '@/lib/approvals'
@@ -202,14 +203,18 @@ export function ApprovalsView() {
           </ErrorBoundary>
           <Card>
             <CardContent>
+              {scan.isError && scan.data && <StaleNote updatedAt={scan.dataUpdatedAt} onRetry={() => scan.refetch()} />}
               {scan.isLoading ? (
                 <p className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
                   <Loader className="size-4 animate-spin" /> Scanning your approval history on {chain?.name}…
                 </p>
-              ) : scan.isError ? (
-                <p className="text-destructive py-10 text-center text-sm">
-                  Couldn’t scan {chain?.name} right now. Try again in a minute.
-                </p>
+              ) : scan.isError && !scan.data ? (
+                <LoadError
+                  what="your approval history"
+                  source={`the ${chain?.name ?? ''} explorer`}
+                  onRetry={() => scan.refetch()}
+                  retrying={scan.isFetching}
+                />
               ) : approvals.length === 0 ? (
                 <p className="flex flex-col items-center gap-2 py-10 text-center text-sm">
                   <ShieldCheck className="size-8 text-emerald-600" />

@@ -4,6 +4,7 @@ import { useChains } from 'wagmi'
 import { ChevronDown, EyeOff, ShieldAlert } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { type Holding } from '@/lib/holdings'
@@ -90,10 +91,13 @@ export function TokensCard({ address }: { address: Address }) {
         </div>
       </CardHeader>
       <CardContent>
+        {holdings.isError && holdings.data && (
+          <StaleNote updatedAt={holdings.dataUpdatedAt} onRetry={() => holdings.refetch()} />
+        )}
         {holdings.isLoading ? (
           <p className="text-muted-foreground py-6 text-center text-sm">Loading tokens…</p>
-        ) : holdings.isError ? (
-          <p className="text-destructive py-6 text-center text-sm">Couldn’t load tokens from the explorer right now.</p>
+        ) : holdings.isError && !holdings.data ? (
+          <LoadError what="tokens" onRetry={() => holdings.refetch()} retrying={holdings.isFetching} />
         ) : all.length === 0 ? (
           <p className="text-muted-foreground py-6 text-center text-sm">No tokens on {chain?.name}.</p>
         ) : (

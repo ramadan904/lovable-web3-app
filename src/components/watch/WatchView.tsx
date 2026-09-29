@@ -15,6 +15,7 @@ import { addWatched, MAX_WATCHED, removeWatched, useWatchlist, type Watched } fr
 import type { BsTx } from '@/lib/wrapped'
 import { describeTx, timeAgo } from '@/lib/txText'
 import { cn, shortenAddress } from '@/lib/utils'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 const CHAINS = [
   { id: mainnet.id, name: 'Ethereum', explorer: 'https://etherscan.io' },
@@ -23,7 +24,6 @@ const CHAINS = [
 const POLL_MS = 30_000
 
 type FeedItem = { tx: BsTx; who: Watched; chain: (typeof CHAINS)[number]; time: number }
-
 
 type Batch = { who: Watched; chain: (typeof CHAINS)[number]; items: BsTx[] }
 
@@ -51,9 +51,9 @@ function combineFeed(results: UseQueryResult<Batch>[]) {
 }
 
 async function latestTxs(chainId: number, address: Address) {
-  const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions`)
+  const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions`)
   if (res.status === 404) return []
-  if (!res.ok) throw new Error(`Explorer error ${res.status}`)
+  if (!res.ok) throw new HttpError(res, 'Explorer request')
   const body = (await res.json()) as { items?: BsTx[] }
   return (body.items ?? []).slice(0, 10)
 }
@@ -97,7 +97,10 @@ export function WatchView() {
       notified.current.add(key)
       if (permission === 'granted') {
         try {
-          new Notification(`${f.who.label} on ${f.chain.name}`, { body: describeTx(f.tx, f.who.address).text, tag: key })
+          new Notification(`${f.who.label} on ${f.chain.name}`, {
+            body: describeTx(f.tx, f.who.address).text,
+            tag: key,
+          })
         } catch {
           // some browsers only allow notifications from a service worker
         }

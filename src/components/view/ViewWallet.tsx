@@ -12,6 +12,7 @@ import { TokensCard } from '@/components/dashboard/TokensCard'
 import { NftsCard } from '@/components/dashboard/NftsCard'
 import { GalaxyCard } from '@/components/galaxy/GalaxyCard'
 import { Button } from '@/components/ui/button'
+import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { BLOCKSCOUT } from '@/lib/blockscout'
@@ -21,6 +22,7 @@ import { describeTx, timeAgo } from '@/lib/txText'
 import { shortenAddress } from '@/lib/utils'
 import { addWatched, useWatchlist } from '@/lib/watchlist'
 import type { BsTx } from '@/lib/wrapped'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 function safeNormalize(name: string) {
   try {
@@ -39,9 +41,9 @@ function RecentTransactions({ address }: { address: Address }) {
     staleTime: 60_000,
     retry: 1,
     queryFn: async () => {
-      const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions`)
+      const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/transactions`)
       if (res.status === 404) return []
-      if (!res.ok) throw new Error(`Explorer error ${res.status}`)
+      if (!res.ok) throw new HttpError(res, 'Explorer request')
       return ((await res.json()) as { items?: BsTx[] }).items?.slice(0, 15) ?? []
     },
   })
@@ -69,10 +71,11 @@ function RecentTransactions({ address }: { address: Address }) {
         </div>
       </CardHeader>
       <CardContent>
+        {txs.isError && txs.data && <StaleNote updatedAt={txs.dataUpdatedAt} onRetry={() => txs.refetch()} />}
         {txs.isLoading ? (
           <p className="text-muted-foreground py-6 text-center text-sm">Loading…</p>
-        ) : txs.isError ? (
-          <p className="text-destructive py-6 text-center text-sm">Couldn’t load transactions right now.</p>
+        ) : txs.isError && !txs.data ? (
+          <LoadError what="transactions" onRetry={() => txs.refetch()} retrying={txs.isFetching} />
         ) : !txs.data?.length ? (
           <p className="text-muted-foreground py-6 text-center text-sm">No transactions on this network.</p>
         ) : (

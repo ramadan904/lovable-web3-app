@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 export type Prices = { eth: number; usdc: number }
 
@@ -46,10 +47,10 @@ export function usePrices() {
   return useQuery({
     queryKey: ['prices'],
     queryFn: async (): Promise<Prices> => {
-      const res = await fetch(
+      const res = await fetchWithRetry(
         'https://api.coingecko.com/api/v3/simple/price?ids=ethereum,usd-coin&vs_currencies=usd,ngn,eur,gbp',
       )
-      if (!res.ok) throw new Error(`Price request failed: ${res.status}`)
+      if (!res.ok) throw new HttpError(res, 'Price request')
       const data = (await res.json()) as Record<string, Partial<Record<string, number>>>
       const eth = data.ethereum?.usd
       if (typeof eth !== 'number') throw new Error('Price missing from response')

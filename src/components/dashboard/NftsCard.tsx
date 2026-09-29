@@ -5,10 +5,12 @@ import { useChains } from 'wagmi'
 import { ChevronDown, EyeOff, ImageOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { LoadError, StaleNote } from '@/components/LoadError'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKSCOUT } from '@/lib/blockscout'
 import { toNfts, type BsNft, type Nft } from '@/lib/nfts'
 import { cn } from '@/lib/utils'
+import { fetchWithRetry, HttpError } from '@/lib/net'
 
 const PAGE = 24
 
@@ -65,9 +67,9 @@ export function NftsCard({ address }: { address: Address }) {
     staleTime: 5 * 60_000,
     retry: 1,
     queryFn: async () => {
-      const res = await fetch(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/nft?type=ERC-721,ERC-1155`)
+      const res = await fetchWithRetry(`${BLOCKSCOUT[chainId]}/api/v2/addresses/${address}/nft?type=ERC-721,ERC-1155`)
       if (res.status === 404) return { items: [] as Nft[], more: false }
-      if (!res.ok) throw new Error(`Explorer error ${res.status}`)
+      if (!res.ok) throw new HttpError(res, 'Explorer request')
       const body = (await res.json()) as { items?: BsNft[]; next_page_params?: unknown }
       return { items: toNfts(body.items ?? []), more: !!body.next_page_params }
     },
@@ -107,10 +109,11 @@ export function NftsCard({ address }: { address: Address }) {
         </div>
       </CardHeader>
       <CardContent>
+        {nfts.isError && nfts.data && <StaleNote updatedAt={nfts.dataUpdatedAt} onRetry={() => nfts.refetch()} />}
         {nfts.isLoading ? (
           <p className="text-muted-foreground py-6 text-center text-sm">Loading NFTs…</p>
-        ) : nfts.isError ? (
-          <p className="text-destructive py-6 text-center text-sm">Couldn’t load NFTs from the explorer right now.</p>
+        ) : nfts.isError && !nfts.data ? (
+          <LoadError what="NFTs" onRetry={() => nfts.refetch()} retrying={nfts.isFetching} />
         ) : all.length === 0 ? (
           <p className="text-muted-foreground py-6 text-center text-sm">No NFTs on {chain?.name}.</p>
         ) : (
