@@ -108,13 +108,31 @@ src/
   components/ui/                  shadcn/ui components
 ```
 
+## Configuration (optional)
+
+The app works with no configuration, using each chain's public RPC. Public RPCs
+are rate-limited, so for production set any of these environment variables
+(Vercel → Project → Settings → Environment Variables, and GitHub → Settings →
+Secrets and variables → Actions for the Pages build; locally, a `.env.local` file):
+
+| Variable | What it does |
+| --- | --- |
+| `VITE_ALCHEMY_KEY` | One Alchemy key; RPC URLs are built for every supported chain |
+| `VITE_RPC_ETHEREUM`, `VITE_RPC_BASE`, `VITE_RPC_SEPOLIA`, `VITE_RPC_ARBITRUM`, `VITE_RPC_OPTIMISM`, `VITE_RPC_POLYGON` | A full RPC URL for one chain (Infura, QuickNode, Alchemy, your own node…). Takes priority over `VITE_ALCHEMY_KEY` |
+| `VITE_WALLETCONNECT_PROJECT_ID` | Reown/WalletConnect project ID from cloud.reown.com; enables the WalletConnect QR / mobile wallet option |
+
+Requests go to the configured RPCs first and fall back to the public RPC if they
+fail (see `src/lib/rpc.ts`). Rebuild after changing a value.
+
+**These values are public.** Vite inlines every `VITE_*` variable into the
+JavaScript bundle, so anyone can read them. Restrict each key to your domains
+(e.g. `walletbodyguard.vercel.app`, `ramadan904.github.io`, `localhost`) in the
+provider's dashboard, and never put a secret that can spend money or sign
+anything in a `VITE_*` variable.
+
 ## Adding chains or wallets
 
-Edit `src/lib/wagmi.ts`. Add chains from `wagmi/chains` to both `chains` and
-`transports`. Browser wallets that support EIP-6963 are detected automatically.
-To add WalletConnect, install `@walletconnect/ethereum-provider` and add
-`walletConnect({ projectId })` from `wagmi/connectors`.
-
-The default `http()` transports use public RPC endpoints, which are
-rate-limited. For production, pass your own RPC URL, e.g.
-`http(import.meta.env.VITE_MAINNET_RPC_URL)`.
+Edit `src/lib/wagmi.ts`: add the chain from `wagmi/chains` to `chains` and to
+`transports` (using `transportFor(chain.id)`), and add its Alchemy subdomain and
+env name in `src/lib/rpc.ts`. Browser wallets that support EIP-6963 are detected
+automatically.

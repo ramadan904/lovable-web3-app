@@ -27,6 +27,16 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: 'true'
+          # Optional: set these under Settings → Secrets and variables → Actions.
+          # Unset secrets are empty strings, which the app treats as "not configured".
+          VITE_ALCHEMY_KEY: ${{ secrets.VITE_ALCHEMY_KEY }}
+          VITE_RPC_ETHEREUM: ${{ secrets.VITE_RPC_ETHEREUM }}
+          VITE_RPC_BASE: ${{ secrets.VITE_RPC_BASE }}
+          VITE_RPC_SEPOLIA: ${{ secrets.VITE_RPC_SEPOLIA }}
+          VITE_RPC_ARBITRUM: ${{ secrets.VITE_RPC_ARBITRUM }}
+          VITE_RPC_OPTIMISM: ${{ secrets.VITE_RPC_OPTIMISM }}
+          VITE_RPC_POLYGON: ${{ secrets.VITE_RPC_POLYGON }}
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.VITE_WALLETCONNECT_PROJECT_ID }}
       - uses: actions/configure-pages@v5
         with:
           enablement: true
