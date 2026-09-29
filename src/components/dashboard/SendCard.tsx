@@ -14,9 +14,11 @@ import {
   useWriteContract,
 } from 'wagmi'
 import { mainnet, sepolia } from 'wagmi/chains'
-import { ExternalLink, Send, TriangleAlert } from 'lucide-react'
+import { ExternalLink, ScanEye, TriangleAlert } from 'lucide-react'
 
 import { ShieldPanel } from '@/components/dashboard/ShieldPanel'
+import { ReviewDialog } from '@/components/review/ReviewDialog'
+import type { SimCall } from '@/lib/simulate'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -75,6 +77,7 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
   const [amount, setAmount] = useState(initial?.amount ?? '')
   const [acknowledged, setAcknowledged] = useState(false)
   const [lastHash, setLastHash] = useState<Hash>()
+  const [reviewing, setReviewing] = useState(false)
   const receipt = useWaitForTransactionReceipt({ hash: lastHash })
 
   // Pre-fill from the command bar.
@@ -183,11 +186,32 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
     (!danger || acknowledged)
   const error = token === 'ETH' ? sendEth.error : sendToken.error
 
+  // Exactly what will be signed; the review screen simulates this before the wallet opens.
+  const usdcAddress = chain ? USDC[chain.id] : undefined
+  const calls: SimCall[] =
+    !to || units === null
+      ? []
+      : token === 'ETH'
+        ? [{ to, value: units }]
+        : usdcAddress
+          ? [
+              {
+                to: usdcAddress,
+                data: encodeFunctionData({ abi: erc20Abi, functionName: 'transfer', args: [to, units] }),
+              },
+            ]
+          : []
+
   function onSubmit(event: FormEvent) {
     event.preventDefault()
+    if (canSend) setReviewing(true)
+  }
+
+  function confirmSend() {
     if (!canSend || !chain || !address || !to || units === null) return
 
     const onSuccess = (hash: Hash) => {
+      setReviewing(false)
       setLastHash(hash)
       setAmount('')
       recordActivity(address, { hash, chainId: chain.id, token, amount, to, time: Date.now() })
@@ -355,12 +379,42 @@ export function SendCard({ initial, title = 'Send' }: { initial?: Initial; title
             </p>
           )}
           <Button type="submit" disabled={!canSend} variant={danger ? 'destructive' : 'default'}>
-            <Send />
-            {pending ? 'Confirm in your wallet…' : `Send ${symbol}`}
+            <ScanEye />
+            {pending ? 'Confirm in your wallet…' : `Review & send ${symbol}`}
           </Button>
+          <p className="text-muted-foreground -mt-2 text-center text-xs">
+            You’ll see a final Scam Shield check and a simulation before your wallet asks you to sign.
+          </p>
         </form>
 
-        {error && <p className="text-destructive text-sm">{errorText(error)}</p>}
+        {error && !reviewing && <p className="text-destructive text-sm">{errorText(error)}</p>}
+
+        {chain && address && to && units !== null && (
+          <ReviewDialog
+            open={reviewing}
+            onClose={() => setReviewing(false)}
+            onConfirm={confirmSend}
+            title="Review before you sign"
+            summary={
+              <p>
+                Send{' '}
+                <b className="tabular-nums">
+                  {amount} {symbol}
+                </b>{' '}
+                to <b>{contact?.name ?? ensName ?? shortenAddress(to)}</b>
+                <span className="text-muted-foreground mt-1 block font-mono text-xs break-all">{to}</span>
+              </p>
+            }
+            chainId={chain.id}
+            account={address}
+            calls={calls}
+            expected={[{ token: token === 'ETH' ? 'native' : USDC[chain.id], amount: units, to }]}
+            shield={{ findings: shield.findings, loading: shield.loading }}
+            confirmLabel="Confirm in wallet"
+            pending={pending}
+            error={error ? errorText(error) : undefined}
+          />
+        )}
 
         {lastHash && (
           <div className="bg-muted flex flex-col gap-1 rounded-md p-3 text-sm">

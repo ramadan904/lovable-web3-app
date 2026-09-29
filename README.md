@@ -130,6 +130,22 @@ JavaScript bundle, so anyone can read them. Restrict each key to your domains
 provider's dashboard, and never put a secret that can spend money or sign
 anything in a `VITE_*` variable.
 
+## Transaction preview
+
+Every send, revoke and Savings Lock action opens a review screen before the
+wallet does. It shows the Scam Shield result again and a simulation of the
+exact transaction (`src/lib/simulate.ts`):
+
+- **Full simulation** via `eth_simulateV1` (free on most RPCs, including
+  Alchemy and the public ones): real execution against the latest block, with
+  every token transfer, ETH movement and approval the contracts emit.
+- **Dry run** when the RPC doesn't support it: a gas estimate catches reverts,
+  and the preview is decoded from the transaction data.
+
+If the simulation shows funds leaving to anyone you didn't ask for, a new
+permission, or a revert, the confirm button stays locked until you tick an
+explicit "I understand" box.
+
 ## Adding chains or wallets
 
 Edit `src/lib/wagmi.ts`: add the chain from `wagmi/chains` to `chains` and to

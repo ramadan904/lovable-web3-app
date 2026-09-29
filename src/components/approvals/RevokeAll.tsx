@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { encodeFunctionData, erc20Abi } from 'viem'
 import { useCapabilities, useConnection, useSendCalls, useWaitForCallsStatus } from 'wagmi'
 import { Layers, ShieldCheck } from 'lucide-react'
 
+import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { nftAbi, type Approval } from '@/lib/approvals'
 import type { ChainId } from '@/lib/wagmi'
@@ -14,7 +15,8 @@ import { celebrate } from '@/lib/celebrate'
  * can revoke every risky approval with a single confirmation.
  */
 export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chainId: ChainId }) {
-  const { chain } = useConnection()
+  const { address, chain } = useConnection()
+  const [reviewing, setReviewing] = useState(false)
   const queryClient = useQueryClient()
   const onChain = chain?.id === chainId
   const caps = useCapabilities({ chainId, query: { enabled: onChain, retry: false } })
@@ -44,17 +46,16 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
       </p>
     )
 
+  const calls = approvals.map((a) => ({
+    to: a.token,
+    data:
+      a.kind === 'nft'
+        ? encodeFunctionData({ abi: nftAbi, functionName: 'setApprovalForAll', args: [a.spender, false] })
+        : encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [a.spender, 0n] }),
+  }))
+
   function revokeAll() {
-    send.mutate({
-      chainId,
-      calls: approvals.map((a) => ({
-        to: a.token,
-        data:
-          a.kind === 'nft'
-            ? encodeFunctionData({ abi: nftAbi, functionName: 'setApprovalForAll', args: [a.spender, false] })
-            : encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [a.spender, 0n] }),
-      })),
-    })
+    send.mutate({ chainId, calls }, { onSuccess: () => setReviewing(false) })
   }
 
   return (
@@ -66,7 +67,7 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
       ) : (
         <Button
           variant="destructive"
-          onClick={revokeAll}
+          onClick={() => setReviewing(true)}
           disabled={send.isPending || (!!send.data && !done && !failed)}
         >
           <Layers />
@@ -76,6 +77,31 @@ export function RevokeAll({ approvals, chainId }: { approvals: Approval[]; chain
               ? 'Revoking…'
               : `Revoke all ${approvals.length} risky approvals — one signature`}
         </Button>
+      )}
+      {address && (
+        <ReviewDialog
+          open={reviewing}
+          onClose={() => setReviewing(false)}
+          onConfirm={revokeAll}
+          title="Review batch revoke"
+          summary={
+            <p>
+              Revoke <b>{approvals.length} risky approvals</b> with one signature
+            </p>
+          }
+          chainId={chainId}
+          account={address}
+          calls={calls}
+          confirmLabel="Revoke all in wallet"
+          pending={send.isPending}
+          error={
+            send.error
+              ? 'shortMessage' in send.error
+                ? String(send.error.shortMessage)
+                : send.error.message
+              : undefined
+          }
+        />
       )}
       {failed && (
         <p className="text-destructive text-xs">

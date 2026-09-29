@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { erc20Abi, formatUnits, type Hash } from 'viem'
+import { encodeFunctionData, erc20Abi, formatUnits, type Hash } from 'viem'
 import { useChains, useConnection, useSwitchChain, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -18,6 +18,7 @@ import { RevokeAll } from '@/components/approvals/RevokeAll'
 import { ConnectCard } from '@/components/ConnectCard'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { LoadError, StaleNote } from '@/components/LoadError'
+import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { nftAbi, useApprovals, type Approval } from '@/lib/approvals'
@@ -39,9 +40,10 @@ function amountText(a: Approval) {
 }
 
 function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer?: string }) {
-  const { chain } = useConnection()
+  const { address, chain } = useConnection()
   const switchChain = useSwitchChain()
   const write = useWriteContract()
+  const [reviewing, setReviewing] = useState(false)
   const queryClient = useQueryClient()
   const [hash, setHash] = useState<Hash>()
   const receipt = useWaitForTransactionReceipt({ hash, chainId })
@@ -54,8 +56,16 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
     return () => clearTimeout(t)
   }, [revoked, queryClient])
 
+  const revokeData =
+    a.kind === 'nft'
+      ? encodeFunctionData({ abi: nftAbi, functionName: 'setApprovalForAll', args: [a.spender, false] })
+      : encodeFunctionData({ abi: erc20Abi, functionName: 'approve', args: [a.spender, 0n] })
+
   function revoke() {
-    const onSuccess = (h: Hash) => setHash(h)
+    const onSuccess = (h: Hash) => {
+      setReviewing(false)
+      setHash(h)
+    }
     if (a.kind === 'nft')
       write.mutate(
         { address: a.token, abi: nftAbi, functionName: 'setApprovalForAll', args: [a.spender, false], chainId },
@@ -126,7 +136,7 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
           <Button
             size="sm"
             variant={danger ? 'destructive' : 'outline'}
-            onClick={revoke}
+            onClick={() => setReviewing(true)}
             disabled={write.isPending || (!!hash && receipt.isLoading)}
           >
             {write.isPending
@@ -139,6 +149,31 @@ function Row({ a, chainId, explorer }: { a: Approval; chainId: ChainId; explorer
           </Button>
         )}
       </div>
+      {address && (
+        <ReviewDialog
+          open={reviewing}
+          onClose={() => setReviewing(false)}
+          onConfirm={revoke}
+          title="Review revoke"
+          summary={
+            <p>
+              Revoke <b>{a.spenderLabel ?? shortenAddress(a.spender)}</b>’s access to your <b>{a.tokenLabel}</b>
+            </p>
+          }
+          chainId={chainId}
+          account={address}
+          calls={[{ to: a.token, data: revokeData }]}
+          confirmLabel="Revoke in wallet"
+          pending={write.isPending}
+          error={
+            write.error
+              ? 'shortMessage' in write.error
+                ? String(write.error.shortMessage)
+                : write.error.message
+              : undefined
+          }
+        />
+      )}
     </li>
   )
 }

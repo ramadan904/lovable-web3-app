@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { formatEther, isAddress, parseEther, type Address, type Hash } from 'viem'
+import { encodeDeployData, encodeFunctionData, formatEther, isAddress, parseEther, type Address, type Hash } from 'viem'
 import {
   useBalance,
   useChains,
@@ -15,6 +15,7 @@ import { sepolia } from 'wagmi/chains'
 import { ExternalLink, FileCode2, Lock, LockOpen, PiggyBank, Plus, TriangleAlert, X } from 'lucide-react'
 
 import { ConnectCard } from '@/components/ConnectCard'
+import { ReviewDialog } from '@/components/review/ReviewDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -58,6 +59,7 @@ function CreateLock({ owner }: { owner: Address }) {
   const [date, setDate] = useState('')
   const [ack, setAck] = useState(false)
   const [hash, setHash] = useState<Hash>()
+  const [reviewing, setReviewing] = useState(false)
   const receipt = useWaitForTransactionReceipt({ hash, chainId })
   const now = useNow(30_000)
 
@@ -98,10 +100,19 @@ function CreateLock({ owner }: { owner: Address }) {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (canCreate) setReviewing(true)
+  }
+
+  function confirmCreate() {
     if (!canCreate || unlock === undefined || value === undefined) return
     deploy.mutate(
       { abi: savingsLockAbi, bytecode: savingsLockBytecode, args: [BigInt(unlock)], value, chainId },
-      { onSuccess: setHash },
+      {
+        onSuccess: (h) => {
+          setReviewing(false)
+          setHash(h)
+        },
+      },
     )
   }
 
@@ -231,6 +242,34 @@ function CreateLock({ owner }: { owner: Address }) {
             <FileCode2 className="size-3.5" /> Read the 40-line contract
           </a>
         </form>
+        {unlock !== undefined && value !== undefined && (
+          <ReviewDialog
+            open={reviewing}
+            onClose={() => setReviewing(false)}
+            onConfirm={confirmCreate}
+            title="Review new savings lock"
+            summary={
+              <p>
+                Lock <b className="tabular-nums">{formatEther(value)} ETH</b> until{' '}
+                <b>{new Date(unlock * 1000).toLocaleString()}</b>
+                <span className="text-muted-foreground mt-1 block text-xs">
+                  Deploys your own SavingsLock contract. Nobody can withdraw before that date — including you.
+                </span>
+              </p>
+            }
+            chainId={chainId}
+            account={owner}
+            calls={[
+              {
+                data: encodeDeployData({ abi: savingsLockAbi, bytecode: savingsLockBytecode, args: [BigInt(unlock)] }),
+                value,
+              },
+            ]}
+            confirmLabel="Create in wallet"
+            pending={deploy.isPending}
+            error={deploy.error ? errText(deploy.error) : undefined}
+          />
+        )}
       </CardContent>
     </Card>
   )
@@ -245,8 +284,10 @@ function VaultCard({ v }: { v: Vault }) {
   const balance = useBalance({ address: v.address, chainId: v.chainId as ChainId, query: { refetchInterval: 30_000 } })
   const topUp = useSendTransaction()
   const withdraw = useWriteContract()
+  const { address: account } = useConnection()
   const [amount, setAmount] = useState('')
   const [lastHash, setLastHash] = useState<Hash>()
+  const [review, setReview] = useState<'topUp' | 'withdraw'>()
   const receipt = useWaitForTransactionReceipt({ hash: lastHash, chainId: v.chainId as ChainId })
   const { refetch } = balance
   useEffect(() => {
@@ -342,34 +383,11 @@ function VaultCard({ v }: { v: Vault }) {
                 onChange={(e) => setAmount(e.target.value.trim())}
                 aria-label="Top-up amount"
               />
-              <Button
-                variant="outline"
-                disabled={!topUpValue || topUp.isPending}
-                onClick={() =>
-                  topUpValue &&
-                  topUp.mutate(
-                    { to: v.address, value: topUpValue, chainId: v.chainId as ChainId },
-                    {
-                      onSuccess: (h) => {
-                        setLastHash(h)
-                        setAmount('')
-                      },
-                    },
-                  )
-                }
-              >
+              <Button variant="outline" disabled={!topUpValue || topUp.isPending} onClick={() => setReview('topUp')}>
                 <Plus /> Top up
               </Button>
             </div>
-            <Button
-              disabled={!unlocked || withdraw.isPending || !eth}
-              onClick={() =>
-                withdraw.mutate(
-                  { address: v.address, abi: savingsLockAbi, functionName: 'withdraw', chainId: v.chainId as ChainId },
-                  { onSuccess: setLastHash },
-                )
-              }
-            >
+            <Button disabled={!unlocked || withdraw.isPending || !eth} onClick={() => setReview('withdraw')}>
               {unlocked ? <LockOpen /> : <Lock />}
               {withdraw.isPending
                 ? 'Confirm in your wallet…'
@@ -383,6 +401,50 @@ function VaultCard({ v }: { v: Vault }) {
           <p className="text-destructive text-xs">{errText((topUp.error ?? withdraw.error)!)}</p>
         )}
         {lastHash && receipt.isLoading && <p className="text-muted-foreground text-xs">Waiting for confirmation…</p>}
+        {account && (
+          <ReviewDialog
+            open={!!review && (review === 'withdraw' || !!topUpValue)}
+            onClose={() => setReview(undefined)}
+            onConfirm={() => {
+              const onSuccess = (h: Hash) => {
+                setReview(undefined)
+                setLastHash(h)
+                setAmount('')
+              }
+              if (review === 'topUp' && topUpValue)
+                topUp.mutate({ to: v.address, value: topUpValue, chainId: v.chainId as ChainId }, { onSuccess })
+              else if (review === 'withdraw')
+                withdraw.mutate(
+                  { address: v.address, abi: savingsLockAbi, functionName: 'withdraw', chainId: v.chainId as ChainId },
+                  { onSuccess },
+                )
+            }}
+            title={review === 'withdraw' ? 'Review withdrawal' : 'Review top-up'}
+            summary={
+              review === 'withdraw' ? (
+                <p>
+                  Withdraw everything from <b>{v.name}</b> back to your wallet
+                </p>
+              ) : (
+                <p>
+                  Add <b className="tabular-nums">{amount} ETH</b> to <b>{v.name}</b> — locked until{' '}
+                  {new Date(v.unlockTime * 1000).toLocaleDateString()}
+                </p>
+              )
+            }
+            chainId={v.chainId}
+            account={account}
+            calls={
+              review === 'withdraw'
+                ? [{ to: v.address, data: encodeFunctionData({ abi: savingsLockAbi, functionName: 'withdraw' }) }]
+                : [{ to: v.address, value: topUpValue ?? 0n }]
+            }
+            expected={review === 'topUp' ? [{ token: 'native', amount: topUpValue ?? 0n, to: v.address }] : []}
+            confirmLabel={review === 'withdraw' ? 'Withdraw in wallet' : 'Top up in wallet'}
+            pending={topUp.isPending || withdraw.isPending}
+            error={(topUp.error ?? withdraw.error) ? errText((topUp.error ?? withdraw.error)!) : undefined}
+          />
+        )}
         {lastHash && receipt.isError && <p className="text-destructive text-xs">That transaction failed on-chain.</p>}
       </CardContent>
     </Card>
